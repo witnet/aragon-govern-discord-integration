@@ -1,0 +1,44 @@
+{
+  "name": "aragon-aragon-discord-integration",
+  "version": "0.0.0",
+  "main": "index.js",
+  "repository": "",
+  "author": "Witnet Foundation <info@witnet.foundation>",
+  "license": "GPL-3.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "volta": {
+    "node": "14.15.4",
+    "yarn": "1.22.10"
+  },
+  "scripts": {
+    "api-docs": "scripty",
+    "build": "scripty",
+    "test": "scripty",
+    "lint": "scripty",
+    "clean": "scripty"
+  },
+  "scripty": {
+    "path": "./scripts/workspace"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "@commitlint/config-lerna-scopes": "^11.0.0",
+    "commitlint": "^11.0.0",
+    "conventional-changelog": "^3.1.24",
+    "husky": "^4.3.0",
+    "lerna": "^3.22.1",
+    "lerna-changelog": "^1.0.1",
+    "prettier-standard": "^16.4.1",
+    "rimraf": "^3.0.2",
+    "scripty": "^2.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  }
+}
