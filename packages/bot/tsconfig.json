@@ -6,7 +6,10 @@
     "outDir": "dist",
     "rootDir": "src",
     "baseUrl": ".",
-    "paths": {}
+    "paths": {},
+    "types": ["node", "reflect-metadata"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
   },
   "include": ["src"]
 }
