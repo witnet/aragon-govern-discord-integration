@@ -10,10 +10,14 @@
     "lint": "scripty",
     "clean": "rimraf dist *.tsbuildinfo",
     "build": "scripty",
-    "test": "scripty"
+    "test": "scripty",
+    "dev": "yarn build && node dist/index.js"
   },
   "dependencies": {
-    "@adi/bot": "^0.0.1"
+    "@adi/bot": "^0.0.1",
+    "@types/express": "^4.17.11",
+    "@types/node": "^14.14.22",
+    "express": "^4.17.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.12.11",
