@@ -5,6 +5,10 @@ import { Command } from '../types'
 export class CommandFinder {
 
     public isNewDaoMessage(message: string) {
-        return message.search(Command.New) >= 0
+        return message.search(Command.NewDao) >= 0
+    }
+
+    public isNewPropoosalMessage(message: string) {
+        return message.search(Command.NewProposal) > 0
     }
 }

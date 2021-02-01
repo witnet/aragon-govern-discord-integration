@@ -52,9 +52,7 @@ export class Bot {
 
   public listen (): Promise<string> {
     this.client.on('message', (message: Message) => {
-      if (!message.author.bot) {
-        this.messageHandler.handle(message)
-      }
+      this.messageHandler.handle(message)
     })
 
     return this.login()
