@@ -1,0 +1,18 @@
+version: "2"
+services:
+  bot:
+    build:
+      context: .
+      args:
+        GITHUB_API_TOKEN: "$GITHUB_API_TOKEN"
+    command: "./packages/bot/dist/index.js"
+    environment:
+      DISCORD_TOKEN: "$DISCORD_BOT_TOKEN"
+  monitor:
+    build:
+      context: .
+      args:
+        GITHUB_API_TOKEN: "$GITHUB_API_TOKEN"
+    command: "./packages/server/dist/index.js"
+    environment:
+      DISCORD_TOKEN: "$DISCORD_MONITOR_TOKEN"
