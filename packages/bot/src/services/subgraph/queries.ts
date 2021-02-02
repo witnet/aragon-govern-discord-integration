@@ -33,3 +33,12 @@ export const QUERY_DAOS = gql`
   }
   ${RegistryEntryBase}
 `
+
+export const QUERY_DAO = gql`
+  query RegistryEntry($name: String!) {
+    registryEntries(where: { name: $name }, first: 1) {
+        ...RegistryEntryBase
+    }
+  }
+  ${RegistryEntryBase}
+`
