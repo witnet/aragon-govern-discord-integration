@@ -8,6 +8,8 @@
   },
   "scripts": {
     "dev": "yarn build && node dist/index.js",
+    "dev:listen": "yarn dev --listen",
+    "start": "node dist/index.js --listen",
     "watch": "tsc -p tsconfig.json -w",
     "lint": "scripty",
     "clean": "rimraf dist *.tsbuildinfo",

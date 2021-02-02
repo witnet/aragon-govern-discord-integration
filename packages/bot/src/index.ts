@@ -8,4 +8,10 @@ import { Bot } from './bot'
 
 export const bot = container.get<Bot>(TYPES.Bot)
 
+const listenArgumentFound = process.argv.slice(2)?.[0]
+
+if (listenArgumentFound) {
+  bot.listen()
+}
+
 export default bot
