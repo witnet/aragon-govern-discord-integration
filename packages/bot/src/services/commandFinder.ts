@@ -3,12 +3,11 @@ import { Command } from '../types'
 
 @injectable()
 export class CommandFinder {
+  public isNewDaoMessage (message: string) {
+    return message.search(Command.NewDao) >= 0
+  }
 
-    public isNewDaoMessage(message: string) {
-        return message.search(Command.NewDao) >= 0
-    }
-
-    public isNewProposalMessage(message: string) {
-        return message.search(Command.NewProposal) >= 0
-    }
+  public isNewProposalMessage (message: string) {
+    return message.search(Command.NewProposal) >= 0
+  }
 }
