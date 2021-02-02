@@ -8,7 +8,7 @@ export class CommandFinder {
         return message.search(Command.NewDao) >= 0
     }
 
-    public isNewPropoosalMessage(message: string) {
-        return message.search(Command.NewProposal) > 0
+    public isNewProposalMessage(message: string) {
+        return message.search(Command.NewProposal) >= 0
     }
 }

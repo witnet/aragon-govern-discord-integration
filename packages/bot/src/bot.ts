@@ -51,6 +51,7 @@ export class Bot {
   }
 
   public listen (): Promise<string> {
+    console.log('[BOT]: Listening discord server')
     this.client.on('message', (message: Message) => {
       this.messageHandler.handle(message)
     })
@@ -96,7 +97,3 @@ function countReactions (
     .map((emoji: string) => reactions.get(emoji)?.count || 0)
     .reduce((a: number, b: number) => a + b)
 }
-
-// DR
-
-// create DAO

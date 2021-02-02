@@ -2,7 +2,7 @@ import { Message } from 'discord.js'
 import { inject, injectable } from 'inversify'
 
 import { CommandFinder } from './commandFinder'
-import { parseProposalMessage } from '../services/messageParser'
+// import { parseProposalMessage } from '../services/messageParser'
 import { TYPES } from '../types'
 
 @injectable()
@@ -22,15 +22,21 @@ export class MessageHandler {
             // TODO: make a call to create a DAO 
             console.log(log) 
             return message.reply(log);
-        } else if(this.commandFinder.isNewPropoosalMessage(message.content)) {
+        } else if(this.commandFinder.isNewProposalMessage(message.content)) {
+            const id = message.id
+            const log = `Proposal with ID ${id} is being crerated`
+
+            // TODO: make a call to create a DAO 
+            console.log('[BOT]:' + log) 
+
             // TODO(#5): handle create proposal command 
 
             // TODO: define proposal message structure and parse new proposal message
-            const { channelId, messageId, proposaldeadline } = parseProposalMessage(message.content)
+            // const { channelId, messageId, proposaldeadline } = parseProposalMessage(message.content)
             // TODO: call createDataRequest with channelId and messageId
 
             // TODO: deploy data request when porposalDeadline is reached 
-            return message.reply('')
+            return message.reply(log)
         } else {
             return Promise.reject()
         }
