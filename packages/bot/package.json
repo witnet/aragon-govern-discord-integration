@@ -34,6 +34,8 @@
     "babel-plugin-transform-typescript-metadata": "^0.3.1",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
+    "graphql": "^15.5.0",
+    "graphql-request": "^3.4.0",
     "inversify": "^5.0.5",
     "inversify-inject-decorators": "^3.1.0",
     "reflect-metadata": "^0.1.13"
