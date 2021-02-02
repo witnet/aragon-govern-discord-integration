@@ -4,7 +4,7 @@
   "main": "index.js",
   "repository": "",
   "author": "Witnet Foundation <info@witnet.foundation>",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "private": true,
   "workspaces": [
     "packages/*"

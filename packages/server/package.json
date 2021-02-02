@@ -11,7 +11,8 @@
     "clean": "rimraf dist *.tsbuildinfo",
     "build": "scripty",
     "test": "scripty",
-    "dev": "yarn build && node dist/index.js"
+    "dev": "yarn build && node dist/index.js",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "@adi/bot": "^0.0.1",

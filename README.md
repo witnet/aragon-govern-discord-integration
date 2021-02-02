@@ -12,12 +12,12 @@ This repository uses lerna as a monorepo tool. Currently, there are two packages
 
 ## Available commands
 
-### Install dependencies
+### Install dependencies and build
 
 ```sh
   yarn
 
-  lerna bootstrap
+  yarn bootstrap
 ```
 
 ### Run tests
@@ -30,6 +30,14 @@ This repository uses lerna as a monorepo tool. Currently, there are two packages
 
 ```sh
   yarn lint
+```
+
+### Run clean
+
+Remove depdencies and compiled code
+
+```sh
+  yarn clean 
 ```
 
 ### Release a new version
