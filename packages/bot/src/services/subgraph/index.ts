@@ -1,5 +1,8 @@
 import { GraphQLClient } from 'graphql-request'
 import { ErrorUnexpectedResult } from './errors'
+import { QUERY_DAOS } from './queries'
+import { RegistryEntry } from './types'
+
 const ENDPOINT = "https://api.thegraph.com/subgraphs/name/aragon/aragon-govern-rinkeby"
 
 export class SubgraphClient {
@@ -25,6 +28,14 @@ export class SubgraphClient {
     } catch (err) {
       throw new ErrorUnexpectedResult(errorMessage)
     }
+  }
+
+  async queryDaos(): Promise<RegistryEntry[] | null> {
+    const result = await this.fetchResult<{ registryEntries: RegistryEntry[] }>(
+      [QUERY_DAOS],
+      `Unexpected result when querying the DAOs.`
+    )
+    return result.registryEntries ?? []
   }
 
 }
