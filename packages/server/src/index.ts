@@ -6,8 +6,8 @@ const app = express()
 const port = process.env.PORT || 3000
 
 app.get('/', async (req: Request, res: Response) => {
-  const messageId: string = req.query.messageId as string
-  const channelId: string = req.query.channelId as string
+  const messageId: string = req.query.message_id as string
+  const channelId: string = req.query.channel_id as string
 
   if (messageId && channelId) {
     const content = await bot.fetchReactions(messageId, channelId)
@@ -15,10 +15,10 @@ app.get('/', async (req: Request, res: Response) => {
   } else {
     let errorMessage = 'The following parameters are mandatory: '
     if (!messageId) {
-      errorMessage += 'messageId '
+      errorMessage += 'message_id '
     }
     if (!channelId) {
-      errorMessage += 'channelId'
+      errorMessage += 'channel_id'
     }
     return res.status(400).send(errorMessage)
   }
