@@ -14,6 +14,7 @@
     "yarn": "1.22.10"
   },
   "scripts": {
+    "bootstrap": "./node_modules/.bin/lerna bootstrap && yarn build",
     "api-docs": "scripty",
     "build": "scripty",
     "test": "scripty",
