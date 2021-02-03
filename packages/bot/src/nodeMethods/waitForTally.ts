@@ -14,7 +14,7 @@ export function waitForTally (
   const request = JSON.stringify(requestObj)
   let client = new net.Socket()
   const witnetNodeIp = '127.0.0.1'
-  const witnetJsonRpcPort = 1234
+  const witnetJsonRpcPort = 21336
   const retryTimeout = 10000 // milliseconds
   client.connect(witnetJsonRpcPort, witnetNodeIp, function () {
     console.log('Connected')
@@ -24,7 +24,7 @@ export function waitForTally (
   client.on('data', function (data: any) {
     console.log('Received: ' + data)
     let dataValue = JSON.parse(data)
-    if (dataValue.result.tally) {
+    if (dataValue && dataValue.result && dataValue.result.tally) {
       let tally = dataValue.result.tally
       let tallyBytes = JSON.stringify(tally.tally)
       console.log('Found tally for DR ' + drTxHash + ': ' + tallyBytes)

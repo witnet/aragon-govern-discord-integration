@@ -1,13 +1,13 @@
 import * as net from 'net'
 
 export function sendRequestToWitnetNode (
-  request: String,
-  callbackOk: (drTxHash: String) => void,
+  request: string,
+  callbackOk: (drTxHash: string) => void,
   callbackDone: () => void
 ) {
   let client = new net.Socket()
   const witnetNodeIp = '127.0.0.1'
-  const witnetJsonRpcPort = 1234
+  const witnetJsonRpcPort = 21336
   client.connect(witnetJsonRpcPort, witnetNodeIp, function () {
     console.log('Connected')
     client.write(request)

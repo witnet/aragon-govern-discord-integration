@@ -35,16 +35,22 @@ export class MessageHandler {
           proposaldeadline,
           proposalMessage
         } = parseProposalMessage(message)
+        console.log(proposaldeadline)
         const deadline = Date.parse(proposaldeadline)
         const currentTime = Date.now()
 
         if (!proposalMessage) {
           return message.reply(
-            `The proposal should follow the example: '!proposal [dd MM yyyy hh:mm:ss] [message]'`
+            `The proposal should follow the example: '!proposal [MM dd yyyy hh:mm:ss] [message]'`
           )
         } else if (!(deadline > currentTime)) {
           return message.reply(`The timestamp is invalid`)
         } else {
+          console.log(deadline - currentTime)
+          console.log(new Date(deadline))
+          console.log(deadline)
+          console.log(new Date(currentTime))
+          console.log(currentTime)
           // call createDataRequest with channelId and messageId
           setTimeout(() => {
             console.log(
@@ -62,6 +68,7 @@ export class MessageHandler {
                 waitForTally(
                   drTxHash,
                   (tally: any) => {
+                    //TODO: Send tally.tally to contract
                     console.log('Found tally for dr ', drTxHash, ': ', tally)
                   },
                   () => {}
@@ -69,7 +76,7 @@ export class MessageHandler {
               },
               () => {}
             )
-          }, deadline - Date.now())
+          }, deadline - currentTime)
           return message.reply(log)
         }
       } else {
