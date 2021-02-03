@@ -6,7 +6,7 @@ import { RegistryEntry } from './types'
 const ENDPOINT = "https://api.thegraph.com/subgraphs/name/aragon/aragon-govern-rinkeby"
 
 export class SubgraphClient {
-  private client
+  private client: GraphQLClient
 
   constructor() {
     this.client = new GraphQLClient(ENDPOINT, { headers: {} })
@@ -39,11 +39,11 @@ export class SubgraphClient {
   }
 
   async queryDaoByName(name: string): Promise<RegistryEntry | null> {
-    const result = await this.fetchResult<{ registryEntries: RegistryEntry }>(
+    const result = await this.fetchResult<{ registryEntries: RegistryEntry[] }>(
       [QUERY_DAO, { name }],
       `Unexpected result when queryin DAO by name ${name}.`
     )
-    return result.registryEntries ?? []
+    return result.registryEntries && result.registryEntries.length > 0 ? result.registryEntries[0] : null
   }
 
 }

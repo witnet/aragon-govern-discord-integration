@@ -18,6 +18,22 @@ const RegistryEntryBase = gql`
         resolver
         rules
       }
+      queued {
+        id
+        state
+        payload {
+          nonce
+          executionTime
+          submitter
+          actions {
+            to
+            value
+            data
+          }
+          allowFailuresMap
+          proof
+        }
+      }
     }
     executor {
       address

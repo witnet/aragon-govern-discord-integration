@@ -1,12 +1,16 @@
 type Address = string
 
+type Timestamp = string
+
+type Bytes = string
+
 type CollateralData = {
   id: string
   token: string
   amount: string
 }
 
-type ConfigData = {
+type Config = {
   id: string
   executionDelay: string
   scheduleDeposit: CollateralData
@@ -15,9 +19,31 @@ type ConfigData = {
   rules: string
 }
 
+export type Action = {
+  to: Address
+  value: string
+  data: string
+}
+
+type Payload = {
+  nonce: string
+  executionTime: Timestamp
+  submitter: Address
+  actions: Action[]
+  allowsFailuresMap: Bytes
+  proof: Bytes
+}
+
+type Queued = {
+  id: string
+  state: string
+  payload: Payload
+}
+
 type Queue = {
     address: Address
-    config: ConfigData
+    config: Config
+    queued: Queued[]
 }
 
 type Executor = {
