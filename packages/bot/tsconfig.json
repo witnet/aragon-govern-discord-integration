@@ -9,7 +9,9 @@
     "paths": {},
     "types": ["node", "reflect-metadata"],
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   },
-  "include": ["src"]
+  "include": ["src", "src/**/*.json"]
 }
