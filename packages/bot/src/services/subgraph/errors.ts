@@ -4,7 +4,7 @@ type ErrorOptions = {
 }
 
 export class ErrorException extends Error {
-  constructor(
+  constructor (
     message = 'An unexpected error happened.',
     { code = 'ErrorException', name = 'ErrorException' }: ErrorOptions = {}
   ) {
@@ -16,17 +16,17 @@ export class ErrorException extends Error {
     this.defineNonEnumerable('code', code)
   }
 
-  private defineNonEnumerable(name: string, value: any) {
+  private defineNonEnumerable (name: string, value: any) {
     Object.defineProperty(this, name, { value, enumerable: false })
   }
 }
 
 export class ErrorUnexpectedResult extends ErrorException {
-  constructor(
+  constructor (
     message = 'The resource doesn’t correspond to the expected result.',
     {
       code = 'ErrorUnexpectedResult',
-      name = 'ErrorUnexpectedResult',
+      name = 'ErrorUnexpectedResult'
     }: ErrorOptions = {}
   ) {
     super(message, { code, name })
