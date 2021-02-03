@@ -4,6 +4,8 @@ import { createDataRequest } from './createDataRequest'
 import { parseProposalMessage } from './parseProposalMessage'
 import { CommandFinder } from './commandFinder'
 import { TYPES } from '../types'
+import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
+import { waitForTally } from '../nodeMethods/waitForTally'
 
 @injectable()
 export class MessageHandler {
@@ -45,7 +47,18 @@ export class MessageHandler {
         } else {
           // call createDataRequest with channelId and messageId
           setTimeout(() => {
-            createDataRequest(channelId, messageId)
+            const request = createDataRequest(channelId, messageId)
+            sendRequestToWitnetNode(
+              request,
+              drTxHash => {
+                waitForTally(
+                  drTxHash,
+                  tally => {},
+                  () => {}
+                )
+              },
+              () => {}
+            )
           }, deadline - Date.now())
           return message.reply(log)
         }
