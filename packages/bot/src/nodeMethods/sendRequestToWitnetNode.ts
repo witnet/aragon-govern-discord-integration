@@ -1,6 +1,10 @@
-import net from 'net'
+import * as net from 'net'
 
-export function sendRequestToWitnetNode (request, callbackOk, callbackDone) {
+export function sendRequestToWitnetNode (
+  request: String,
+  callbackOk: (drTxHash: String) => void,
+  callbackDone: () => void
+) {
   let client = new net.Socket()
   const witnetNodeIp = '127.0.0.1'
   const witnetJsonRpcPort = 1234
@@ -9,7 +13,7 @@ export function sendRequestToWitnetNode (request, callbackOk, callbackDone) {
     client.write(request)
     client.write('\n')
   })
-  client.on('data', function (data) {
+  client.on('data', function (data: any) {
     console.log('Received: ' + data)
     let response = JSON.parse(data)
     callbackOk(response.result)

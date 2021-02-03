@@ -1,6 +1,10 @@
-import net from 'net'
+import * as net from 'net'
 
-export function waitForTally (drTxHash, callbackFound, callbackDone) {
+export function waitForTally (
+  drTxHash: String,
+  callbackFound: (tally: any) => void,
+  callbackDone: () => void
+) {
   let requestObj = {
     jsonrpc: '2.0',
     id: '1',
@@ -17,7 +21,7 @@ export function waitForTally (drTxHash, callbackFound, callbackDone) {
     client.write(request)
     client.write('\n')
   })
-  client.on('data', function (data) {
+  client.on('data', function (data: any) {
     console.log('Received: ' + data)
     let dataValue = JSON.parse(data)
     if (dataValue.result.tally) {

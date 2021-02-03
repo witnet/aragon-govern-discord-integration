@@ -47,13 +47,23 @@ export class MessageHandler {
         } else {
           // call createDataRequest with channelId and messageId
           setTimeout(() => {
+            console.log(
+              'Will create request for channelId ',
+              channelId,
+              ' and messageId ',
+              messageId
+            )
             const request = createDataRequest(channelId, messageId)
+            console.log('Created request:', request)
             sendRequestToWitnetNode(
               request,
-              drTxHash => {
+              (drTxHash: String) => {
+                console.log('Request sent to witnet node, drTxHash: ', drTxHash)
                 waitForTally(
                   drTxHash,
-                  tally => {},
+                  (tally: any) => {
+                    console.log('Found tally for dr ', drTxHash, ': ', tally)
+                  },
                   () => {}
                 )
               },
