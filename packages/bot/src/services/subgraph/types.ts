@@ -25,7 +25,7 @@ export type Action = {
   data: string
 }
 
-type Payload = {
+export type Payload = {
   nonce: string
   executionTime: Timestamp
   submitter: Address

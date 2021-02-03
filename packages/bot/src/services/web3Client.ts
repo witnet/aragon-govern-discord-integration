@@ -1,7 +1,7 @@
 import Web3 from "web3"
 
 import queueAbi from '../contracts/GovernQueue.json';
-import { Action, RegistryEntry } from "./subgraph/types";
+import { Action, Payload, RegistryEntry } from "./subgraph/types";
 
 // TODO: move configuration variables to config file
 const PROVIDER_URL = "http://localhost:8544"
@@ -25,21 +25,23 @@ export class Web3Client {
     proof: string,
   ) {
     const queue = new this.client.eth.Contract((<any>queueAbi).abi, dao.queue.address)
+    const payload = {
+      nonce: dao.queue.queued.length + 1,
+      executionTime,
+      submitter: GETH_ADDRESS,
+      executor: dao.executor.address,
+      actions,
+      allowFailuresMap,
+      proof,
+    }
     return queue.methods.schedule({
       config: dao.queue.config,
-      payload: {
-        nonce: dao.queue.queued.length + 1,
-        executionTime,
-        submitter: GETH_ADDRESS,  // review
-        executor: GETH_ADDRESS,   // review
-        actions,
-        allowFailuresMap,         // review
-        proof,
-      },
+      payload,
     })
       .send({ from: GETH_ADDRESS, gas: GAS_LIMIT })
       .then(function (data: any) {
-        return data
+        console.log("transaction succsessfully sent:", data.transactionHash)
+        return payload
       })
       .catch(function (error: any) {
         console.error(error)
@@ -47,8 +49,24 @@ export class Web3Client {
       })
   }
 
-  async execute() {
-    // Not yet implemented
+  async execute(
+    dao: RegistryEntry,
+    payload: Payload,
+  ) {
+    const queue = new this.client.eth.Contract((<any>queueAbi).abi, dao.queue.address)
+    return queue.methods.execute({
+      config: dao.queue.config,
+      payload,
+    })
+      .send({ from: GETH_ADDRESS, gas: GAS_LIMIT })
+      .then(function (data: any) {
+        console.log("transaction succsessfully sent:", data.transactionHash)
+        return data
+      })
+      .catch(function (error: any) {
+        console.error(error)
+        return null
+      })
   }
 
 }
