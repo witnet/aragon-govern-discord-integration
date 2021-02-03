@@ -4,6 +4,8 @@ import { createDataRequest } from './createDataRequest'
 import { parseProposalMessage } from './parseProposalMessage'
 import { CommandFinder } from './commandFinder'
 import { TYPES } from '../types'
+import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
+import { waitForTally } from '../nodeMethods/waitForTally'
 
 @injectable()
 export class MessageHandler {
@@ -48,7 +50,29 @@ export class MessageHandler {
         } else {
           // call createDataRequest with channelId and messageId
           setTimeout(() => {
-            createDataRequest(channelId, messageId)
+            console.log(
+              'Will create request for channelId ',
+              channelId,
+              ' and messageId ',
+              messageId
+            )
+            const request = createDataRequest(channelId, messageId)
+            console.log('Created request:', request)
+            sendRequestToWitnetNode(
+              request,
+              (drTxHash: string) => {
+                console.log('Request sent to witnet node, drTxHash: ', drTxHash)
+                waitForTally(
+                  drTxHash,
+                  (tally: any) => {
+                    //TODO: Send tally.tally to contract
+                    console.log('Found tally for dr ', drTxHash, ': ', tally)
+                  },
+                  () => {}
+                )
+              },
+              () => {}
+            )
             // TODO: it can overflow if the proposal is scheduled far in the future.
           }, deadline - currentTime)
           return message.reply(log)

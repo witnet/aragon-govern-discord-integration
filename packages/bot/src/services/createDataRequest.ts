@@ -1,6 +1,7 @@
 // call library to create a data request
 export function createDataRequest (channelId: string, messageId: string) {
-  const baseUrl = 'http://127.0.0.1:8000/positive-negative.json'
+  // TODO: set middleware URL here:
+  const baseUrl = 'http://docker.witnet.io:3000/'
   // TODO: channelId and messageId are assumed to be valid URL parameters
   const url = baseUrl + '?channelId=' + channelId + '&messageId=' + messageId
 
