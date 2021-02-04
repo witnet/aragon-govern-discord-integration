@@ -12,7 +12,7 @@ describe('parseProposalMessage', () => {
     const result = {
       channelId: 1234546578909867564534231,
       messageId: 1325564365,
-      proposaldeadline: '03 02 2021 10:30:00',
+      proposalDeadline: '03 02 2021 10:30:00',
       proposalMessage: 'message'
     }
     expect(parseProposalMessage(message)).toStrictEqual(result)

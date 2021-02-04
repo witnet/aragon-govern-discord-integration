@@ -6,11 +6,11 @@ export function parseProposalMessage (message: Message) {
   const channelId = message.channel.id
   const messageId = message.id
   const proposalMessage = chunks.slice(5).join(' ')
-  const proposaldeadline = chunks.slice(1, 5).join(' ') || '0'
+  const proposalDeadline = chunks.slice(1, 5).join(' ') || '0'
   return {
     channelId,
     messageId,
-    proposaldeadline,
+    proposalDeadline,
     proposalMessage
   }
 }
