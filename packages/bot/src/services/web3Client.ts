@@ -21,13 +21,23 @@ export class Web3Client {
     this.client = new Web3(new Web3.providers.HttpProvider(PROVIDER_URL))
   }
 
+  async isListening() {
+    const res = await this.client.eth.net.isListening()
+    .then((data) => {
+      return data
+    }).catch(()=> {
+      return false
+    })
+    return res
+  }
+
   async schedule(
     dao: RegistryEntry,
     executionTime: string | number,
     allowFailuresMap: string = '0x0000000000000000000000000000000000000000000000000000000000000000',
     proof: string,
   ) {
-    const queue = new this.client.eth.Contract((<any>queueAbi).abi, dao.queue.address)
+    const queue = await new this.client.eth.Contract((<any>queueAbi).abi, dao.queue.address)
     const payload = {
       nonce: dao.queue.queued.length + 1,
       executionTime,
@@ -43,8 +53,11 @@ export class Web3Client {
     })
       .send({ from: GETH_ADDRESS, gas: GAS_LIMIT })
       .then(function (data: any) {
-        console.log("transaction succsessfully sent:", data.transactionHash)
-        return payload
+        console.log("Schedule transaction successfully sent:", data.transactionHash)
+        return {
+          payload,
+          transactionHash: data.transactionHash
+        }
       })
       .catch(function (error: any) {
         console.error(error)
@@ -63,8 +76,8 @@ export class Web3Client {
     })
       .send({ from: GETH_ADDRESS, gas: GAS_LIMIT })
       .then(function (data: any) {
-        console.log("transaction succsessfully sent:", data.transactionHash)
-        return data
+        console.log("Execute transaction succsessfully sent:", data.transactionHash)
+        return data.transactionHash
       })
       .catch(function (error: any) {
         console.error(error)

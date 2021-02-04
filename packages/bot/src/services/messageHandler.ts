@@ -15,6 +15,7 @@ interface DaoDirectory {
   [guildId: string]: RegistryEntry
 }
 import { reportVotingResult } from './reportVotingResult'
+import { executeVotingResult } from './executeVotingResult'
 
 @injectable()
 export class MessageHandler {
@@ -94,34 +95,47 @@ export class MessageHandler {
       return message.reply(
         `The entered deadline for the voting period is already past. Please try again with a future date and time.`
       )
+    } else {
+      // call createDataRequest with channelId and messageId
+      setTimeout(() => {
+        console.log(
+          `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
+        )
+        const request = createDataRequest(channelId, messageId)
+        console.log('Created Witnet data request:', request)
+
+        sendRequestToWitnetNode(
+          request,
+          (drTxHash: string) => {
+            console.log(`Data request sent to Witnet node, drTxHash: ${drTxHash}`)
+            waitForTally(
+              drTxHash,
+              async (tally: any) => {
+                console.log('Tallied proposal result:', tally.tally)
+                const report = await reportVotingResult(dao, drTxHash, `${Math.round(Date.now() / 1000 + 60)}`)
+                if (report) {
+                  message.reply(`The ID of the data request (${drTxHash}) has been reported to the Ethereum contract (${report?.transactionHash})`)
+                } else {
+                  message.reply(`There was an error reporting the proposal result`)
+                }
+                setTimeout(async () => {
+                  const transactionHash = await executeVotingResult(dao, report?.payload)
+                  if (transactionHash) {
+                    message.reply(`The proposal has been executed in Ethereum transaction: ${transactionHash}`)
+                  } else {
+                    message.reply(`There was an error executing the proposal`)
+                  }
+                }, 60000)
+              },
+              () => {}
+            )
+          },
+          () => {}
+        )
+        // TODO: it can overflow if the proposal is scheduled far in the future.
+      }, deadline - currentTime)
+      return message.reply(log)
     }
-    // call createDataRequest with channelId and messageId
-    setTimeout(() => {
-      console.log(
-        `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
-      )
-      const request = createDataRequest(channelId, messageId)
-      console.log('Created Witnet data request:', request)
-
-      sendRequestToWitnetNode(
-        request,
-        (drTxHash: string) => {
-          console.log('Request sent to witnet node, drTxHash: ', drTxHash)
-          waitForTally(
-            drTxHash,
-            (tally: any) => {
-              console.log('Tally result:', tally.tally)
-              reportVotingResult(drTxHash, dao)
-            },
-            () => {}
-          )
-        },
-        () => {}
-      )
-      // TODO: it can overflow if the proposal is scheduled far in the future.
-    }, deadline - currentTime)
-
-    return message.reply(log)
   }
 
   private async setup (message: Message): Promise<Message> {
