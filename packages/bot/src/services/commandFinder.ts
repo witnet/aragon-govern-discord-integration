@@ -10,4 +10,8 @@ export class CommandFinder {
   public isNewProposalMessage (message: string) {
     return message.search(Command.NewProposal) >= 0
   }
+
+  public isSetupMessage (message: string) {
+    return message.search(Command.Setup) >= 0
+  }
 }

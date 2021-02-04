@@ -8,7 +8,8 @@ export const TYPES = {
 
 export enum Command {
   NewDao = '!new',
-  NewProposal = '!proposal'
+  NewProposal = '!proposal',
+  Setup = '!setup'
 }
 
 export type ReactionCount = {

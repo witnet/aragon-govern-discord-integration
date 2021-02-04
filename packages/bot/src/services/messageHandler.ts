@@ -2,25 +2,39 @@ import { Message } from 'discord.js'
 import { inject, injectable } from 'inversify'
 import { createDataRequest } from './createDataRequest'
 import { parseProposalMessage } from './parseProposalMessage'
+import { parseSetupMessage} from "./parseSetupMessage";
 import { CommandFinder } from './commandFinder'
 import { TYPES } from '../types'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
+import {SubgraphClient} from "./subgraph";
+import {RegistryEntry} from "./subgraph/types";
+
+// Maps guild IDs to DAOs
+interface DaoDirectory {
+  [guildId: string]: RegistryEntry;
+}
 
 @injectable()
 export class MessageHandler {
   private commandFinder: CommandFinder
+  private daoDirectory: DaoDirectory
+  private subgraphClient: SubgraphClient
 
   constructor (@inject(TYPES.CommandFinder) commandFinder: CommandFinder) {
     this.commandFinder = commandFinder
+    this.daoDirectory = {}
+    this.subgraphClient = new SubgraphClient()
   }
 
   handle (message: Message): Promise<Message | Array<Message>> | undefined {
     if (!message.author.bot) {
-      if (this.commandFinder.isNewDaoMessage(message.content)) {
-        return MessageHandler.newDao(message)
-      } else if (this.commandFinder.isNewProposalMessage(message.content)) {
+      if (this.commandFinder.isNewProposalMessage(message.content)) {
         return this.newProposal(message)
+      } else if (this.commandFinder.isSetupMessage(message.content)) {
+        return this.setup(message)
+      } else if (this.commandFinder.isNewDaoMessage(message.content)) {
+        return MessageHandler.newDao(message)
       } else {
         return
       }
@@ -90,5 +104,40 @@ export class MessageHandler {
       }, deadline - currentTime)
       return message.reply(log)
     }
+  }
+
+  private async setup (message: Message): Promise<Message> {
+    const {
+      daoName,
+      guildId,
+      requester
+    } = parseSetupMessage(message)
+    console.log(`Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`)
+
+    // Make sure a DAO name has been provided
+    if (!daoName) {
+      return message.reply(`The setup command should follow this format:\n\`!setup theNameOfYourDao\``)
+    }
+
+    // Reject requests from non-admin users
+    if (!requester?.hasPermission("ADMINISTRATOR")) {
+      return message.reply(`Sorry, only users with Admin permission are allowed to setup this integration.`)
+    }
+
+    // Just a corner case
+    if (!guildId) {
+      return message.reply(`Sorry, this method can't be used in direct messaging. Please use it in a channel.`)
+    }
+
+    // Make sure that the DAO name exists in the Aragon Govern subgraph
+    const dao = await this.subgraphClient.queryDaoByName(daoName)
+    if (!dao) {
+      return message.reply(`Sorry, couldn't find a registered DAO named "${daoName}"`)
+    }
+
+    // Keep track of the Discord server <> DAO name relation
+    this.daoDirectory[guildId] = dao
+
+    return message.reply(`Congrats to you and your fellow Discord users! This server is now connected to the DAO named "${daoName}".`)
   }
 }
