@@ -14,6 +14,7 @@ import {RegistryEntry} from "./subgraph/types";
 interface DaoDirectory {
   [guildId: string]: RegistryEntry;
 }
+import { reportVotingResult } from './reportVotingResult'
 
 @injectable()
 export class MessageHandler {
@@ -88,12 +89,12 @@ export class MessageHandler {
         sendRequestToWitnetNode(
           request,
           (drTxHash: string) => {
-            console.log('Request sent to Witnet node, drTxHash: ', drTxHash)
+            console.log('Request sent to witnet node, drTxHash: ', drTxHash)
             waitForTally(
               drTxHash,
               (tally: any) => {
-                //TODO: Send tally.tally to contract
-                console.log('Found tally for dr ', drTxHash, ': ', tally)
+                console.log('Tally result:', tally.tally)
+                reportVotingResult(drTxHash)
               },
               () => {}
             )

@@ -14,7 +14,6 @@ export class Web3Client {
 
   constructor() {
     this.client = new Web3(new Web3.providers.HttpProvider(PROVIDER_URL))
-
   }
 
   async schedule(
