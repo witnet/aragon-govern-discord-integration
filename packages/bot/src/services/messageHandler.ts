@@ -64,7 +64,7 @@ export class MessageHandler {
     const currentTime = Date.now()
 
     const id = message.id
-    const log = `Proposal with ID ${id} is being created. The time for voting will end on ${new Date(
+    const log = `Received a request for creating a proposal with message_id='${id}' and deadline=${new Date(
       deadline
     )}`
     console.log('[BOT]:' + log)
