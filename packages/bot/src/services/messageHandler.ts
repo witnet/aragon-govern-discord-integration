@@ -55,6 +55,7 @@ export class MessageHandler {
     // define proposal message structure and parse new proposal message
     const {
       channelId,
+      guildId,
       messageId,
       proposalDeadline,
       proposalMessage
@@ -68,43 +69,59 @@ export class MessageHandler {
     )}`
     console.log('[BOT]:' + log)
 
-    // TODO: make a call to create a DAO
+    // Prevent this method from being called privately
+    if (!guildId) {
+      return message.reply(
+        `Sorry, this method can't be used in direct messaging. Please use it in a channel.`
+      )
+    }
+
+    const dao = this.daoDirectory[guildId]
+    if (!dao) {
+      return message.reply(
+        `Sorry, this DAO isn't connected yet to any DAO. Please connect it to a DAO using the \`!setup\` command like this:` +
+          `\n\`!setup theNameOfYourDao\``
+      )
+    }
+
     if (!proposalMessage) {
       return message.reply(
         `The proposal should follow this format:\n'\`!proposal [MM dd yyyy HH:mm:ss] [message]'\``
       )
-    } else if (deadline <= currentTime) {
+    }
+
+    if (deadline <= currentTime) {
       return message.reply(
         `The entered deadline for the voting period is already past. Please try again with a future date and time.`
       )
-    } else {
-      // call createDataRequest with channelId and messageId
-      setTimeout(() => {
-        console.log(
-          `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
-        )
-        const request = createDataRequest(channelId, messageId)
-        console.log('Created Witnet data request:', request)
-
-        sendRequestToWitnetNode(
-          request,
-          (drTxHash: string) => {
-            console.log('Request sent to witnet node, drTxHash: ', drTxHash)
-            waitForTally(
-              drTxHash,
-              (tally: any) => {
-                console.log('Tally result:', tally.tally)
-                reportVotingResult(drTxHash)
-              },
-              () => {}
-            )
-          },
-          () => {}
-        )
-        // TODO: it can overflow if the proposal is scheduled far in the future.
-      }, deadline - currentTime)
-      return message.reply(log)
     }
+    // call createDataRequest with channelId and messageId
+    setTimeout(() => {
+      console.log(
+        `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
+      )
+      const request = createDataRequest(channelId, messageId)
+      console.log('Created Witnet data request:', request)
+
+      sendRequestToWitnetNode(
+        request,
+        (drTxHash: string) => {
+          console.log('Request sent to witnet node, drTxHash: ', drTxHash)
+          waitForTally(
+            drTxHash,
+            (tally: any) => {
+              console.log('Tally result:', tally.tally)
+              reportVotingResult(drTxHash, dao)
+            },
+            () => {}
+          )
+        },
+        () => {}
+      )
+      // TODO: it can overflow if the proposal is scheduled far in the future.
+    }, deadline - currentTime)
+
+    return message.reply(log)
   }
 
   private async setup (message: Message): Promise<Message> {
@@ -127,7 +144,7 @@ export class MessageHandler {
       )
     }
 
-    // Just a corner case
+    // Prevent this method from being called privately
     if (!guildId) {
       return message.reply(
         `Sorry, this method can't be used in direct messaging. Please use it in a channel.`
