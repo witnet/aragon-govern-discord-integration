@@ -1,9 +1,12 @@
+// Factory for the URLs to be used as the sources in the data request
+function urlFactory(channelId: string, messageId: string, base_url: string, port: number = 80) {
+  return `${base_url}:${port}/?channel_id=${channelId}&message_id=${messageId}`
+}
+
 // call library to create a data request
 export function createDataRequest (channelId: string, messageId: string) {
-  // TODO: set middleware URL here:
-  const baseUrl = 'http://docker.witnet.io:3000/'
   // TODO: channelId and messageId are assumed to be valid URL parameters
-  const url = baseUrl + '?channel_id=' + channelId + '&message_id=' + messageId
+  const baseUrl = 'http://docker.witnet.io'
 
   // Use this JSON as a template
   // Use the following Rust code to generate the script:
@@ -21,9 +24,9 @@ export function createDataRequest (channelId: string, messageId: string) {
 
   // Modify url of each script
   // TODO: make each retrieve URL configurable
-  request.params.dro.data_request.retrieve[0].url = url
-  request.params.dro.data_request.retrieve[1].url = url
-  request.params.dro.data_request.retrieve[2].url = url
+  request.params.dro.data_request.retrieve[0].url = urlFactory(channelId, messageId, baseUrl, 3000)
+  request.params.dro.data_request.retrieve[1].url = urlFactory(channelId, messageId, baseUrl, 3001)
+  request.params.dro.data_request.retrieve[2].url = urlFactory(channelId, messageId, baseUrl, 3002)
 
   // Convert back to JSON
   return JSON.stringify(request)
