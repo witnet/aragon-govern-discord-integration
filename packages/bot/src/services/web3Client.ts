@@ -7,6 +7,11 @@ import { Action, Payload, RegistryEntry } from "./subgraph/types";
 const PROVIDER_URL = "http://localhost:8544"
 const GETH_ADDRESS = "0xa550Cf4F03Bd2417Cf83c8a652703cdC33c016ee"
 const GAS_LIMIT = 7385875
+const EMPTY_ACTION: Action = {
+  to: GETH_ADDRESS,
+  value: '0',
+  data: '0x00',
+}
 
 export class Web3Client {
 
@@ -19,7 +24,6 @@ export class Web3Client {
   async schedule(
     dao: RegistryEntry,
     executionTime: string | number,
-    actions: Action[],
     allowFailuresMap: string = '0x0000000000000000000000000000000000000000000000000000000000000000',
     proof: string,
   ) {
@@ -29,7 +33,7 @@ export class Web3Client {
       executionTime,
       submitter: GETH_ADDRESS,
       executor: dao.executor.address,
-      actions,
+      actions: [EMPTY_ACTION],
       allowFailuresMap,
       proof,
     }
