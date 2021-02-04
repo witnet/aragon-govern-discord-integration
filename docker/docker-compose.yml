@@ -1,18 +1,16 @@
 version: "2"
 services:
   bot:
-    build:
-      context: .
-      args:
-        GITHUB_API_TOKEN: "$GITHUB_API_TOKEN"
-    command: "./packages/bot/dist/index.js"
+    image: "aragon-discord"
+    command: "./packages/bot/dist/index.js --listen"
     environment:
       DISCORD_TOKEN: "$DISCORD_BOT_TOKEN"
+    restart: always
   monitor:
-    build:
-      context: .
-      args:
-        GITHUB_API_TOKEN: "$GITHUB_API_TOKEN"
+    image: "aragon-discord"
     command: "./packages/server/dist/index.js"
     environment:
       DISCORD_TOKEN: "$DISCORD_MONITOR_TOKEN"
+    ports:
+      - "10.1.2.4:3000:3000"
+    restart: always
