@@ -1,5 +1,5 @@
 import * as net from 'net'
-import { WITNET_NODE_IP, WITNET_NODE_PORT } from '../config'
+import { WITNET_NODE_HOST, WITNET_NODE_PORT } from '../config'
 
 export function sendRequestToWitnetNode (
   request: string,
@@ -7,7 +7,7 @@ export function sendRequestToWitnetNode (
   callbackDone: () => void
 ) {
   let client = new net.Socket()
-  client.connect(WITNET_NODE_PORT, WITNET_NODE_IP, function () {
+  client.connect(WITNET_NODE_PORT, WITNET_NODE_HOST, function () {
     console.log('Connected')
     client.write(request)
     client.write('\n')
