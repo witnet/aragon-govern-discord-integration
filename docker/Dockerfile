@@ -27,5 +27,5 @@ RUN yarn build
 
 # Set the entrypoint and main command
 # Runs the bot by default, but CMD can be overriden when running a container so it runs the reactions monitor server
-ENTRYPOINT node
-CMD ./packages/bot/dist/index.js
+ENTRYPOINT ["node"]
+CMD ["./packages/bot/dist/index.js"]
