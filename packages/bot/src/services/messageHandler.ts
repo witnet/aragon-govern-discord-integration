@@ -2,17 +2,17 @@ import { Message } from 'discord.js'
 import { inject, injectable } from 'inversify'
 import { createDataRequest } from './createDataRequest'
 import { parseProposalMessage } from './parseProposalMessage'
-import { parseSetupMessage} from "./parseSetupMessage";
+import { parseSetupMessage } from './parseSetupMessage'
 import { CommandFinder } from './commandFinder'
 import { TYPES } from '../types'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
-import {SubgraphClient} from "./subgraph";
-import {RegistryEntry} from "./subgraph/types";
+import { SubgraphClient } from './subgraph'
+import { RegistryEntry } from './subgraph/types'
 
 // Maps guild IDs to DAOs
 interface DaoDirectory {
-  [guildId: string]: RegistryEntry;
+  [guildId: string]: RegistryEntry
 }
 import { reportVotingResult } from './reportVotingResult'
 
@@ -108,37 +108,49 @@ export class MessageHandler {
   }
 
   private async setup (message: Message): Promise<Message> {
-    const {
-      daoName,
-      guildId,
-      requester
-    } = parseSetupMessage(message)
-    console.log(`Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`)
+    const { daoName, guildId, requester } = parseSetupMessage(message)
+    console.log(
+      `Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`
+    )
 
     // Make sure a DAO name has been provided
     if (!daoName) {
-      return message.reply(`The setup command should follow this format:\n\`!setup theNameOfYourDao\``)
+      return message.reply(
+        `The setup command should follow this format:\n\`!setup theNameOfYourDao\``
+      )
     }
 
     // Reject requests from non-admin users
-    if (!requester?.hasPermission("ADMINISTRATOR")) {
-      return message.reply(`Sorry, only users with Admin permission are allowed to setup this integration.`)
+    if (!requester?.hasPermission('ADMINISTRATOR')) {
+      return message.reply(
+        `Sorry, only users with Admin permission are allowed to setup this integration.`
+      )
     }
 
     // Just a corner case
     if (!guildId) {
-      return message.reply(`Sorry, this method can't be used in direct messaging. Please use it in a channel.`)
+      return message.reply(
+        `Sorry, this method can't be used in direct messaging. Please use it in a channel.`
+      )
     }
 
     // Make sure that the DAO name exists in the Aragon Govern subgraph
     const dao = await this.subgraphClient.queryDaoByName(daoName)
     if (!dao) {
-      return message.reply(`Sorry, couldn't find a registered DAO named "${daoName}"`)
+      return message.reply(
+        `Sorry, couldn't find a registered DAO named "${daoName}"`
+      )
     }
 
     // Keep track of the Discord server <> DAO name relation
     this.daoDirectory[guildId] = dao
 
-    return message.reply(`Congrats to you and your fellow Discord users! This server is now connected to the DAO named "${daoName}".`)
+    return message.reply(
+      `Congrats to you and your fellow Discord users! This server is now connected to the DAO named "${daoName}".` +
+        `\n\n**Remember to also add these other bots to your server**, otherwise the integration will fail:` +
+        `\n- Witnet Foundation Reactions Monitor: https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=0&scope=bot%20messages.read` +
+        `\n- Aragon One Reactions Monitor: https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=0&scope=bot%20messages.read` +
+        `\n- OtherPlane Reactions Monitor: https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=0&scope=bot%20messages.read`
+    )
   }
 }
