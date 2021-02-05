@@ -1,5 +1,10 @@
 // Factory for the URLs to be used as the sources in the data request
-function urlFactory(channelId: string, messageId: string, base_url: string, port: number = 80) {
+function urlFactory (
+  channelId: string,
+  messageId: string,
+  base_url: string,
+  port: number = 80
+) {
   return `${base_url}:${port}/?channel_id=${channelId}&message_id=${messageId}`
 }
 
@@ -24,9 +29,24 @@ export function createDataRequest (channelId: string, messageId: string) {
 
   // Modify url of each script
   // TODO: make each retrieve URL configurable
-  request.params.dro.data_request.retrieve[0].url = urlFactory(channelId, messageId, baseUrl, 3000)
-  request.params.dro.data_request.retrieve[1].url = urlFactory(channelId, messageId, baseUrl, 3001)
-  request.params.dro.data_request.retrieve[2].url = urlFactory(channelId, messageId, baseUrl, 3002)
+  request.params.dro.data_request.retrieve[0].url = urlFactory(
+    channelId,
+    messageId,
+    baseUrl,
+    3000
+  )
+  request.params.dro.data_request.retrieve[1].url = urlFactory(
+    channelId,
+    messageId,
+    baseUrl,
+    3001
+  )
+  request.params.dro.data_request.retrieve[2].url = urlFactory(
+    channelId,
+    messageId,
+    baseUrl,
+    3002
+  )
 
   // Convert back to JSON
   return JSON.stringify(request)
