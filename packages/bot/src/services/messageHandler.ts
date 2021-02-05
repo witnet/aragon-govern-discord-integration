@@ -165,9 +165,9 @@ export class MessageHandler {
     return message.reply(
       `Congrats to you and your fellow Discord users! This server is now connected to the DAO named "${daoName}".` +
         `\n\n**Remember to also add these other bots to your server**, otherwise the integration will fail:` +
-        `\n- Witnet Foundation Reactions Monitor: https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=65536&scope=bot%20messages.read` +
-        `\n- Aragon One Reactions Monitor: https://discord.com/api/oauth2/authorize?client_id=806819543460610068&permissions=65536&scope=bot%20messages.read` +
-        `\n- OtherPlane Reactions Monitor: https://discord.com/api/oauth2/authorize?client_id=806821381844762625&permissions=65536&scope=bot%20messages.read`
+        `\n- Witnet Foundation Reactions Monitor: <https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=65536&scope=bot%20messages.read>` +
+        `\n- Aragon One Reactions Monitor: <https://discord.com/api/oauth2/authorize?client_id=806819543460610068&permissions=65536&scope=bot%20messages.read>` +
+        `\n- OtherPlane Reactions Monitor: <https://discord.com/api/oauth2/authorize?client_id=806821381844762625&permissions=65536&scope=bot%20messages.read>`
     )
   }
 }
