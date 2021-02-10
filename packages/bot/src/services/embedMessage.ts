@@ -55,16 +55,16 @@ export class EmbedMessage {
   }
 
   proposal ({
-    proposalMessage,
+    proposalDescription,
     proposalDeadlineDate,
     authorUrl,
     footerMessage
   }: EmbedMessageParams) {
     const proposalEmbedMessage = new Discord.MessageEmbed()
       .setColor('#0099ff')
-      .setTitle(`New proposal ***${proposalMessage}***`)
+      .setTitle(`New proposal ***${proposalDescription}***`)
       .setDescription(
-        `The request for creating the proposal ***${proposalMessage}*** has been received. React to this proposal to vote!`
+        `The request for creating the proposal ***${proposalDescription}*** has been received. React to this proposal to vote!`
       )
       .setThumbnail('attachment://aragon.png')
       .addFields(

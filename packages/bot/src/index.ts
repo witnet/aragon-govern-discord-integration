@@ -11,7 +11,9 @@ export const bot = container.get<Bot>(TYPES.Bot)
 const listenArgumentFound = process.argv.slice(2)?.[0]
 
 if (listenArgumentFound) {
-  bot.listen()
+  bot.listen().then(() => {
+    bot.loadActiveProposals()
+  })
 }
 
 export default bot

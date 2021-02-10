@@ -1,16 +1,13 @@
 import { Message } from 'discord.js'
 import { inject, injectable } from 'inversify'
-import { createDataRequest } from './createDataRequest'
 import { parseProposalMessage } from './parseProposalMessage'
 import { parseSetupMessage } from './parseSetupMessage'
 import { CommandFinder } from './commandFinder'
-import { TYPES, RequestMessage, DaoDirectory } from '../types'
-import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
-import { waitForTally } from '../nodeMethods/waitForTally'
+import { TYPES, RequestMessage, DaoDirectory, Proposal } from '../types'
 import { SubgraphClient } from './subgraph'
-import { reportVotingResult } from './reportVotingResult'
-import { executeVotingResult } from './executeVotingResult'
 import { EmbedMessage } from './embedMessage'
+import { ProposalRepository } from '../database'
+import { scheduleDataRequest } from './scheduleDataRequest'
 
 @injectable()
 export class MessageHandler {
@@ -19,16 +16,20 @@ export class MessageHandler {
   private daoDirectory: DaoDirectory
   public requestMessage: RequestMessage | null
   private embedMessage: EmbedMessage
+  private proposalRepository: ProposalRepository
 
   constructor (
     @inject(TYPES.CommandFinder) commandFinder: CommandFinder,
-    @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage
+    @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage,
+    @inject(TYPES.ProposalRepository) proposalRepository: ProposalRepository,
+    @inject(TYPES.SubgraphClient) subgraphClient: SubgraphClient
   ) {
     this.commandFinder = commandFinder
-    this.subgraphClient = new SubgraphClient()
     this.embedMessage = embedMessage
     this.daoDirectory = {}
     this.requestMessage = null
+    this.subgraphClient = subgraphClient
+    this.proposalRepository = proposalRepository
   }
 
   handle (message: Message): Promise<Message | Array<Message>> | undefined {
@@ -69,7 +70,7 @@ export class MessageHandler {
       proposalDeadlineDate,
       proposalDeadlineTimestamp,
       messageId,
-      proposalMessage
+      proposalDescription
     } = this.requestMessage
     const currentTime = Date.now()
 
@@ -100,7 +101,7 @@ export class MessageHandler {
       )
     }
 
-    if (!proposalMessage) {
+    if (!proposalDescription) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Invalid format`,
@@ -120,7 +121,7 @@ export class MessageHandler {
       return message.channel.send(
         '@everyone',
         this.embedMessage.proposal({
-          proposalMessage,
+          proposalDescription,
           proposalDeadlineDate,
           footerMessage: `@${message.author.username}`,
           authorUrl: message.author.displayAvatarURL()
@@ -136,7 +137,7 @@ export class MessageHandler {
         channelId,
         guildId,
         proposalDeadlineTimestamp,
-        proposalMessage
+        proposalDescription
       } = this.requestMessage
       const currentTime = Date.now()
       const messageId = message.id
@@ -146,104 +147,44 @@ export class MessageHandler {
           this.embedMessage.warning({
             title: `:warning: Sorry, this method can't be used in direct messaging`,
             description: `Please use it in a channel.`,
-            footerMessage: `Proposal ${proposalMessage}`,
+            footerMessage: `Proposal ${proposalDescription}`,
             authorUrl: message.author.displayAvatarURL()
           })
         )
       }
 
       const dao = this.daoDirectory[guildId]
+
+      // TODO: Handle error saving proposal
+      this.saveProposal({
+        messageId,
+        channelId,
+        guildId,
+        description: proposalDescription,
+        createdAt: currentTime,
+        deadline: proposalDeadlineTimestamp,
+        daoName: this.daoDirectory[guildId].name 
+      })
+
       // call createDataRequest with channelId and messageId
       setTimeout(() => {
-        message.channel.send(
-          '@everyone',
-          this.embedMessage.info({
-            title: `:stopwatch: The time for voting the proposal: ***${proposalMessage}*** is over!`,
-            description: `Creating Witnet data request...`,
-            footerMessage: `Proposal ${proposalMessage}`,
-            authorUrl: message.author.displayAvatarURL()
-          })
-        )
-        console.log(
-          `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
-        )
-        const request = createDataRequest(channelId, messageId)
-        console.log('Created Witnet data request:', request)
+        scheduleDataRequest(this.embedMessage)(channelId, messageId, message, dao, proposalDescription)
 
-        sendRequestToWitnetNode(
-          request,
-          (drTxHash: string) => {
-            console.log(
-              `Data request sent to Witnet node, drTxHash: ${drTxHash}`
-            )
-            waitForTally(
-              drTxHash,
-              async (tally: any) => {
-                console.log('Tallied proposal result:', tally.tally)
-                const report = await reportVotingResult(
-                  dao,
-                  drTxHash,
-                  `${Math.round(Date.now() / 1000 + 60)}`
-                )
-                if (report) {
-                  message.channel.send(
-                    '@everyone',
-                    this.embedMessage.info({
-                      title: 'The data request result has been received',
-                      description: `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash}))`,
-                      footerMessage: `Proposal ${proposalMessage}`,
-                      authorUrl: message.author.displayAvatarURL()
-                    })
-                  )
-                } else {
-                  message.channel.send(
-                    '@everyone',
-                    this.embedMessage.error({
-                      title:
-                        ':exclamation: There was an error reporting the proposal result',
-                      footerMessage: `Proposal ${proposalMessage}`,
-                      authorUrl: message.author.displayAvatarURL()
-                    })
-                  )
-                }
-                setTimeout(async () => {
-                  const transactionHash = await executeVotingResult(
-                    dao,
-                    report?.payload
-                  )
-                  if (transactionHash) {
-                    message.channel.send(
-                      '@everyone',
-                      this.embedMessage.info({
-                        title: 'Proposal executed',
-                        description: `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`,
-                        footerMessage: `Proposal ${proposalMessage}`,
-                        authorUrl: message.author.displayAvatarURL()
-                      })
-                    )
-                  } else {
-                    message.channel.send(
-                      '@everyone',
-                      this.embedMessage.error({
-                        title: `@everyone There was an error executing the proposal`,
-                        footerMessage: `Proposal ${proposalMessage}`,
-                        authorUrl: message.author.displayAvatarURL()
-                      })
-                    )
-                  }
-                }, 60000)
-                this.requestMessage = null
-              },
-              () => {}
-            )
-          },
-          () => {}
-        )
+        this.requestMessage = null
         // TODO: it can overflow if the proposal is scheduled far in the future.
       }, proposalDeadlineTimestamp - currentTime)
       return
     } else {
       return
+    }
+  }
+
+  private saveProposal (proposal: Proposal) {
+    try {
+      this.proposalRepository.insert(proposal)
+    } catch (error) {
+      // TODO. handle error
+      console.log('Error saving proposal', proposal)
     }
   }
 

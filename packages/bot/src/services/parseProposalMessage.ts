@@ -7,15 +7,15 @@ export function parseProposalMessage (message: Message): RequestMessage {
   const channelId = message.channel.id
   const guildId = message.guild?.id
   const messageId = message.id
-  let proposalMessage = ''
+  let proposalDescription = ''
   let proposalDeadlineDate = ''
   let proposalDeadlineTimestamp = 0
   if (chunks.length < 5) {
-    proposalMessage = ''
+    proposalDescription = ''
     proposalDeadlineDate = ''
     proposalDeadlineTimestamp = 0
   } else {
-    proposalMessage = chunks.slice(5).join(' ')
+    proposalDescription = chunks.slice(5).join(' ')
     const year = chunks[1] || 0
     const month = chunks[2] || 0
     const day = chunks[3] || 0
@@ -39,7 +39,7 @@ export function parseProposalMessage (message: Message): RequestMessage {
     messageId,
     proposalDeadlineTimestamp,
     proposalDeadlineDate,
-    proposalMessage
+    proposalDescription,
   }
 }
 

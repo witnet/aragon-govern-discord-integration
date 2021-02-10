@@ -6,6 +6,9 @@ export const TYPES = {
   Token: Symbol('Token'),
   MessageHandler: Symbol('MessageHandler'),
   CommandFinder: Symbol('CommandFinder'),
+  Database: Symbol('Database'),
+  ProposalRepository: Symbol('ProposalRepository'),
+  SubgraphClient: Symbol('SubgraphClient'),
   EmbedMessage: Symbol('EmbedMessage')
 }
 
@@ -18,7 +21,7 @@ export interface DaoDirectory {
 export type EmbedMessageParams = {
   title?: string
   description?: string
-  proposalMessage?: string
+  proposalDescription?: string
   proposalDeadlineDate?: string
   authorUrl?: string
   footerMessage?: string
@@ -31,7 +34,7 @@ export type RequestMessage = {
   messageId: string
   proposalDeadlineTimestamp: number
   proposalDeadlineDate: string
-  proposalMessage: string
+  proposalDescription: string
 }
 
 export enum Command {
@@ -52,3 +55,13 @@ export enum Reaction {
 
 export type PositiveReaction = Reaction.ThumbsUp
 export type NegativeReaction = Reaction.ThumbsDown
+
+export type Proposal = {
+  messageId: string
+  channelId: string
+  guildId: string
+  description: string
+  createdAt: number
+  deadline: number
+  daoName: string
+}

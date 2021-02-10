@@ -1,10 +1,12 @@
 import { GraphQLClient } from 'graphql-request'
+import { injectable } from 'inversify'
 import { ErrorUnexpectedResult } from './errors'
 import { QUERY_DAO, QUERY_DAOS } from './queries'
 import { RegistryEntry } from './types'
 
 const ENDPOINT = "https://api.thegraph.com/subgraphs/name/aragon/aragon-govern-rinkeby"
 
+@injectable()
 export class SubgraphClient {
   private client: GraphQLClient
 
