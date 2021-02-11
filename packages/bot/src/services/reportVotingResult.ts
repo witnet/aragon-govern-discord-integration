@@ -3,7 +3,11 @@ import { RegistryEntry } from './subgraph/types'
 
 const web3 = new Web3Client()
 
-export async function reportVotingResult (dao: RegistryEntry, drTxHash: any, deadline: any) {
+export async function reportVotingResult (
+  dao: RegistryEntry,
+  drTxHash: any,
+  deadline: any
+) {
   // Report data request hash to `GovernQueue` contract through its `schedule` method
   const isListening = await web3.isListening()
 

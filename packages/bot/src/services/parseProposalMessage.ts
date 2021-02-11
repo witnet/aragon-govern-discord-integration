@@ -10,7 +10,6 @@ export function parseProposalMessage (message: Message): RequestMessage {
   let proposalMessage = ''
   let proposalDeadlineDate = ''
   let proposalDeadlineTimestamp = 0
-  console.log(chunks)
   if (chunks.length < 5) {
     proposalMessage = ''
     proposalDeadlineDate = ''

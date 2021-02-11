@@ -41,7 +41,7 @@ export class MessageHandler {
         return
       }
     } else {
-      message.embeds.forEach((embed) => {
+      message.embeds.forEach(embed => {
         if (this.commandFinder.isProposalMessage(embed.title || '')) {
           return this.newDataRequest(message)
         } else {
@@ -265,36 +265,46 @@ export class MessageHandler {
 
   private async setup (message: Message): Promise<Message> {
     const { daoName, guildId, requester } = parseSetupMessage(message)
-    console.log(`Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`)
+    console.log(
+      `Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`
+    )
 
     // Make sure a DAO name has been provided
     if (!daoName) {
-      return message.reply(validationWarning
-        .setTitle('The setup command should follow this format:')
-        .setDescription(`\`!setup theNameOfYourDao\``)
+      return message.reply(
+        validationWarning
+          .setTitle('The setup command should follow this format:')
+          .setDescription(`\`!setup theNameOfYourDao\``)
       )
     }
 
     // Reject requests from non-admin users
     if (!requester?.hasPermission('ADMINISTRATOR')) {
-      return message.reply(validationWarning
-        .setTitle(`Sorry, only users with Admin permission are allowed to setup this integration.`)
+      return message.reply(
+        validationWarning.setTitle(
+          `Sorry, only users with Admin permission are allowed to setup this integration.`
+        )
       )
     }
 
     // Prevent this method from being called privately
     if (!guildId) {
-      return message.reply(validationWarning
-        .setTitle(`:warning: Sorry, this method can't be used in direct messaging.`)
-        .setDescription(`Please use it in a channel.`)
+      return message.reply(
+        validationWarning
+          .setTitle(
+            `:warning: Sorry, this method can't be used in direct messaging.`
+          )
+          .setDescription(`Please use it in a channel.`)
       )
     }
 
     // Make sure that the DAO name exists in the Aragon Govern subgraph
     const dao = await this.subgraphClient.queryDaoByName(daoName)
     if (!dao) {
-      return message.reply(validationWarning
-        .setTitle(`:warning: Sorry, couldn't find a registered DAO named "${daoName}"`)
+      return message.reply(
+        validationWarning.setTitle(
+          `:warning: Sorry, couldn't find a registered DAO named "${daoName}"`
+        )
       )
     }
 
