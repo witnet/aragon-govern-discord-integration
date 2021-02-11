@@ -10,6 +10,8 @@ import { waitForTally } from '../nodeMethods/waitForTally'
 import { SubgraphClient } from './subgraph'
 import { RegistryEntry } from './subgraph/types'
 
+const Discord = require('discord.js');
+
 // Maps guild IDs to DAOs
 interface DaoDirectory {
   [guildId: string]: RegistryEntry
@@ -114,14 +116,19 @@ export class MessageHandler {
                 console.log('Tallied proposal result:', tally.tally)
                 const report = await reportVotingResult(dao, drTxHash, `${Math.round(Date.now() / 1000 + 60)}`)
                 if (report) {
-                  message.reply(`The ID of the data request (${drTxHash}) has been reported to the Ethereum contract (${report?.transactionHash})`)
+                  const message_dr = new Discord.MessageEmbed()
+                  .setDescription(`The ID of the data request [${drTxHash}](https://witnet.network/search/${drTxHash}) has been reported to the Ethereum contract [${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash})`)
+                  message.reply(message_dr)
+
                 } else {
-                  message.reply(`There was an error reporting the proposal result`)
+                    message.reply(`There was an error reporting the proposal result `)
                 }
                 setTimeout(async () => {
                   const transactionHash = await executeVotingResult(dao, report?.payload)
                   if (transactionHash) {
-                    message.reply(`The proposal has been executed in Ethereum transaction: ${transactionHash}`)
+                    const eth_txn = new Discord.MessageEmbed()
+                  .setDescription(`The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`)
+                  message.reply(eth_txn)
                   } else {
                     message.reply(`There was an error executing the proposal`)
                   }
