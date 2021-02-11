@@ -170,6 +170,10 @@ export class MessageHandler {
               `:warning: Sorry, this method can't be used in direct messaging`
             )
             .setDescription(`Please use it in a channel.`)
+            .setFooter(
+              `Proposal ${proposalMessage}`,
+              message.author.displayAvatarURL()
+            )
         )
       }
 
@@ -184,6 +188,10 @@ export class MessageHandler {
               `:stopwatch: The time for voting the proposal: ***${proposalMessage}*** is over!`
             )
             .setDescription(`Creating Witnet data request...`)
+            .setFooter(
+              `Proposal ${proposalMessage}`,
+              message.author.displayAvatarURL()
+            )
         )
         console.log(
           `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
@@ -215,12 +223,20 @@ export class MessageHandler {
                       .setDescription(
                         `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash}))`
                       )
+                      .setFooter(
+                        `Proposal ${proposalMessage}`,
+                        message.author.displayAvatarURL()
+                      )
                   )
                 } else {
                   message.channel.send(
                     '@everyone',
                     errorMessage.setTitle(
                       ':exclamation: There was an error reporting the proposal result'
+                    )
+                    .setFooter(
+                      `Proposal ${proposalMessage}`,
+                      message.author.displayAvatarURL()
                     )
                   )
                 }
@@ -238,12 +254,20 @@ export class MessageHandler {
                         .setDescription(
                           `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`
                         )
+                        .setFooter(
+                          `Proposal ${proposalMessage}`,
+                          message.author.displayAvatarURL()
+                        )
                     )
                   } else {
                     message.channel.send(
                       '@everyone',
                       errorMessage.setTitle(
                         `@everyone There was an error executing the proposal`
+                      )
+                      .setFooter(
+                        `Proposal ${proposalMessage}`,
+                        message.author.displayAvatarURL()
                       )
                     )
                   }
