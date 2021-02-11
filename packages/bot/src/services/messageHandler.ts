@@ -1,48 +1,53 @@
 import { Message } from 'discord.js'
+const Discord = require('discord.js')
 import { inject, injectable } from 'inversify'
 import { createDataRequest } from './createDataRequest'
 import { parseProposalMessage } from './parseProposalMessage'
 import { parseSetupMessage } from './parseSetupMessage'
 import { CommandFinder } from './commandFinder'
-import { TYPES } from '../types'
+import { TYPES, RequestMessage, DaoDirectory } from '../types'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
 import { SubgraphClient } from './subgraph'
-import { RegistryEntry } from './subgraph/types'
-
-const Discord = require('discord.js');
-
-// Maps guild IDs to DAOs
-interface DaoDirectory {
-  [guildId: string]: RegistryEntry
-}
 import { reportVotingResult } from './reportVotingResult'
 import { executeVotingResult } from './executeVotingResult'
+
+const validationWarning = new Discord.MessageEmbed().setColor('#d09625')
+const errorMessage = new Discord.MessageEmbed().setColor('#b9182f')
 
 @injectable()
 export class MessageHandler {
   private commandFinder: CommandFinder
-  private daoDirectory: DaoDirectory
   private subgraphClient: SubgraphClient
+  private daoDirectory: DaoDirectory
+  public requestMessage: RequestMessage | null
 
   constructor (@inject(TYPES.CommandFinder) commandFinder: CommandFinder) {
     this.commandFinder = commandFinder
-    this.daoDirectory = {}
     this.subgraphClient = new SubgraphClient()
+    this.daoDirectory = {}
+    this.requestMessage = null
   }
 
   handle (message: Message): Promise<Message | Array<Message>> | undefined {
     if (!message.author.bot) {
-      if (this.commandFinder.isNewProposalMessage(message.content)) {
-        return this.newProposal(message)
-      } else if (this.commandFinder.isSetupMessage(message.content)) {
+      if (this.commandFinder.isSetupMessage(message.content)) {
         return this.setup(message)
       } else if (this.commandFinder.isNewDaoMessage(message.content)) {
         return MessageHandler.newDao(message)
+      } else if (this.commandFinder.isNewProposalMessage(message.content)) {
+        return this.newProposal(message)
       } else {
         return
       }
     } else {
+      message.embeds.forEach((embed) => {
+        if (this.commandFinder.isProposalMessage(embed.title || '')) {
+          return this.newDataRequest(message)
+        } else {
+          return
+        }
+      })
       return
     }
   }
@@ -53,53 +58,133 @@ export class MessageHandler {
     // TODO: make a call to create a DAO
     return message.reply(log)
   }
-
+  //
   private newProposal (message: Message): Promise<Message> {
+    this.requestMessage = parseProposalMessage(message)
     // define proposal message structure and parse new proposal message
     const {
-      channelId,
       guildId,
+      proposalDeadlineDate,
+      proposalDeadlineTimestamp,
       messageId,
-      proposalDeadline,
       proposalMessage
-    } = parseProposalMessage(message)
-    const deadline = Date.parse(proposalDeadline)
+    } = this.requestMessage
     const currentTime = Date.now()
 
-    const id = message.id
-    const log = `Received a request for creating a proposal with message_id='${id}' and deadline=${new Date(
-      deadline
-    )}`
-    console.log('[BOT]:' + log)
+    console.log(
+      '[BOT]:' +
+        `Received a request for creating a proposal with message_id='${messageId}' and deadline=${proposalDeadlineDate}`
+    )
 
     // Prevent this method from being called privately
     if (!guildId) {
       return message.reply(
-        `Sorry, this method can't be used in direct messaging. Please use it in a channel.`
+        validationWarning
+          .setTitle(
+            `:warning: Sorry, this method can't be used in direct messaging`
+          )
+          .setDescription(`Please use it in a channel.`)
       )
     }
 
     const dao = this.daoDirectory[guildId]
     if (!dao) {
       return message.reply(
-        `Sorry, this DAO isn't connected yet to any DAO. Please connect it to a DAO using the \`!setup\` command like this:` +
-          `\n\`!setup theNameOfYourDao\``
+        validationWarning
+          .setTitle(`:warning: Sorry, this DAO isn't connected yet to any DAO.`)
+          .setDescription(
+            `Please connect it to a DAO using the \`!setup\` command like this:` +
+              `\n\`!setup theNameOfYourDao\``
+          )
       )
     }
 
     if (!proposalMessage) {
       return message.reply(
-        `The proposal should follow this format:\n'\`!proposal [MM dd yyyy HH:mm:ss] [message]'\``
+        validationWarning
+          .setTitle(`:warning: Invalid format`)
+          .setDescription(
+            `The proposal should follow this format:\n'\`!proposal [yyyy, MM, dd, HH:mm:ss] [message]'\``
+          )
       )
     }
 
-    if (deadline <= currentTime) {
+    if (proposalDeadlineTimestamp <= currentTime) {
       return message.reply(
-        `The entered deadline for the voting period is already past. Please try again with a future date and time.`
+        validationWarning
+          .setTitle(
+            `:warning: The entered deadline for the voting period is already past`
+          )
+          .setDescription('Please try again with a future date and time.')
       )
     } else {
+      const proposalEmbedMessage = new Discord.MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle(`New proposal ***${proposalMessage}***`)
+        .setURL(message.author.avatarURL())
+        .setDescription(
+          `The request for creating the proposal ***${proposalMessage}*** has been received. React to this proposal to vote!`
+        )
+        .setThumbnail('attachment://aragon.png')
+        .addFields(
+          { name: 'Vote yes', value: ':thumbsup:', inline: true },
+          { name: 'Vote no', value: ':thumbsdown:', inline: true },
+          {
+            name: 'The time for voting will end on',
+            value: `${proposalDeadlineDate}`
+          }
+        )
+        .setTimestamp()
+        .setFooter(
+          `@${message.author.username}`,
+          message.author.displayAvatarURL()
+        )
+      return message.channel.send('@everyone', {
+        embed: proposalEmbedMessage,
+        files: [
+          {
+            attachment: 'src/static/aragon.png',
+            name: 'aragon.png'
+          }
+        ]
+      })
+    }
+  }
+
+  private newDataRequest (message: Message) {
+    // define proposal message structure and parse new proposal message
+    if (this.requestMessage) {
+      const {
+        channelId,
+        guildId,
+        proposalDeadlineTimestamp,
+        proposalMessage
+      } = this.requestMessage
+      const currentTime = Date.now()
+      const messageId = message.id
+      // Prevent this method from being called privately
+      if (!guildId) {
+        return message.reply(
+          validationWarning
+            .setTitle(
+              `:warning: Sorry, this method can't be used in direct messaging`
+            )
+            .setDescription(`Please use it in a channel.`)
+        )
+      }
+
+      const dao = this.daoDirectory[guildId]
       // call createDataRequest with channelId and messageId
       setTimeout(() => {
+        message.channel.send(
+          '@everyone',
+          new Discord.MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(
+              `:stopwatch: The time for voting the proposal: ***${proposalMessage}*** is over!`
+            )
+            .setDescription(`Creating Witnet data request...`)
+        )
         console.log(
           `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
         )
@@ -109,30 +194,61 @@ export class MessageHandler {
         sendRequestToWitnetNode(
           request,
           (drTxHash: string) => {
-            console.log(`Data request sent to Witnet node, drTxHash: ${drTxHash}`)
+            console.log(
+              `Data request sent to Witnet node, drTxHash: ${drTxHash}`
+            )
             waitForTally(
               drTxHash,
               async (tally: any) => {
                 console.log('Tallied proposal result:', tally.tally)
-                const report = await reportVotingResult(dao, drTxHash, `${Math.round(Date.now() / 1000 + 60)}`)
+                const report = await reportVotingResult(
+                  dao,
+                  drTxHash,
+                  `${Math.round(Date.now() / 1000 + 60)}`
+                )
                 if (report) {
-                  const message_dr = new Discord.MessageEmbed()
-                  .setDescription(`The ID of the data request [${drTxHash}](https://witnet.network/search/${drTxHash}) has been reported to the Ethereum contract [${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash})`)
-                  message.reply(message_dr)
-
+                  message.channel.send(
+                    '@everyone',
+                    new Discord.MessageEmbed()
+                      .setColor('#0099ff')
+                      .setTitle('The data request result has been received')
+                      .setDescription(
+                        `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash}))`
+                      )
+                  )
                 } else {
-                    message.reply(`There was an error reporting the proposal result `)
+                  message.channel.send(
+                    '@everyone',
+                    errorMessage.setTitle(
+                      ':exclamation: There was an error reporting the proposal result'
+                    )
+                  )
                 }
                 setTimeout(async () => {
-                  const transactionHash = await executeVotingResult(dao, report?.payload)
+                  const transactionHash = await executeVotingResult(
+                    dao,
+                    report?.payload
+                  )
                   if (transactionHash) {
-                    const eth_txn = new Discord.MessageEmbed()
-                  .setDescription(`The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`)
-                  message.reply(eth_txn)
+                    message.channel.send(
+                      '@everyone',
+                      new Discord.MessageEmbed()
+                        .setColor('#0099ff')
+                        .setTitle('Proposal executed')
+                        .setDescription(
+                          `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`
+                        )
+                    )
                   } else {
-                    message.reply(`There was an error executing the proposal`)
+                    message.channel.send(
+                      '@everyone',
+                      errorMessage.setTitle(
+                        `@everyone There was an error executing the proposal`
+                      )
+                    )
                   }
                 }, 60000)
+                this.requestMessage = null
               },
               () => {}
             )
@@ -140,55 +256,85 @@ export class MessageHandler {
           () => {}
         )
         // TODO: it can overflow if the proposal is scheduled far in the future.
-      }, deadline - currentTime)
-      return message.reply(log)
+      }, proposalDeadlineTimestamp - currentTime)
+      return
+    } else {
+      return
     }
   }
 
   private async setup (message: Message): Promise<Message> {
     const { daoName, guildId, requester } = parseSetupMessage(message)
-    console.log(
-      `Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`
-    )
+    console.log(`Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`)
 
     // Make sure a DAO name has been provided
     if (!daoName) {
-      return message.reply(
-        `The setup command should follow this format:\n\`!setup theNameOfYourDao\``
+      return message.reply(validationWarning
+        .setTitle('The setup command should follow this format:')
+        .setDescription(`\`!setup theNameOfYourDao\``)
       )
     }
 
     // Reject requests from non-admin users
     if (!requester?.hasPermission('ADMINISTRATOR')) {
-      return message.reply(
-        `Sorry, only users with Admin permission are allowed to setup this integration.`
+      return message.reply(validationWarning
+        .setTitle(`Sorry, only users with Admin permission are allowed to setup this integration.`)
       )
     }
 
     // Prevent this method from being called privately
     if (!guildId) {
-      return message.reply(
-        `Sorry, this method can't be used in direct messaging. Please use it in a channel.`
+      return message.reply(validationWarning
+        .setTitle(`:warning: Sorry, this method can't be used in direct messaging.`)
+        .setDescription(`Please use it in a channel.`)
       )
     }
 
     // Make sure that the DAO name exists in the Aragon Govern subgraph
     const dao = await this.subgraphClient.queryDaoByName(daoName)
     if (!dao) {
-      return message.reply(
-        `Sorry, couldn't find a registered DAO named "${daoName}"`
+      return message.reply(validationWarning
+        .setTitle(`:warning: Sorry, couldn't find a registered DAO named "${daoName}"`)
       )
     }
 
     // Keep track of the Discord server <> DAO name relation
     this.daoDirectory[guildId] = dao
-
-    return message.reply(
-      `Congrats to you and your fellow Discord users! This server is now connected to the DAO named "${daoName}".` +
-        `\n\n**Remember to also add these other bots to your server**, otherwise the integration will fail:` +
-        `\n- Witnet Foundation Reactions Monitor: <https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=65536&scope=bot%20messages.read>` +
-        `\n- Aragon One Reactions Monitor: <https://discord.com/api/oauth2/authorize?client_id=806819543460610068&permissions=65536&scope=bot%20messages.read>` +
-        `\n- OtherPlane Reactions Monitor: <https://discord.com/api/oauth2/authorize?client_id=806821381844762625&permissions=65536&scope=bot%20messages.read>`
-    )
+    const daoMessage = new Discord.MessageEmbed()
+      .setColor('#0099ff')
+      .setTitle('Congrats to you and your fellow Discord users!')
+      .setDescription(
+        `This server is now connected to the DAO named ***${daoName}***. **Remember to also add these other bots to your server**, otherwise the integration will fail:`
+      )
+      .setThumbnail('attachment://aragon.png')
+      .addFields(
+        {
+          name: 'Witnet Foundation Reactions Monitor',
+          value:
+            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=65536&scope=bot%20messages.read)',
+          inline: true
+        },
+        {
+          name: 'Aragon One Reactions Monitor',
+          value:
+            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806819543460610068&permissions=65536&scope=bot%20messages.read)',
+          inline: true
+        },
+        {
+          name: 'OtherPlane Reactions Monitor',
+          value:
+            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806821381844762625&permissions=65536&scope=bot%20messages.read)',
+          inline: true
+        }
+      )
+    return message.reply('@everyone', {
+      embed: daoMessage,
+      files: [
+        {
+          attachment: 'src/static/aragon.png',
+          name: 'aragon.png'
+        }
+      ]
+    })
   }
 }

@@ -14,4 +14,8 @@ export class CommandFinder {
   public isSetupMessage (message: string) {
     return message.search(Command.Setup) == 0
   }
+
+  public isProposalMessage (message: string) {
+    return message.includes('New proposal')
+  }
 }
