@@ -1,4 +1,4 @@
-import Discord, { Message } from 'discord.js'
+import { Message } from 'discord.js'
 import { inject, injectable } from 'inversify'
 import { createDataRequest } from './createDataRequest'
 import { parseProposalMessage } from './parseProposalMessage'
@@ -10,9 +10,9 @@ import { waitForTally } from '../nodeMethods/waitForTally'
 import { SubgraphClient } from './subgraph'
 import { reportVotingResult } from './reportVotingResult'
 import { executeVotingResult } from './executeVotingResult'
+import { EmbedMessage } from './embedMessage'
 
-const validationWarning = new Discord.MessageEmbed().setColor('#d09625')
-const errorMessage = new Discord.MessageEmbed().setColor('#b9182f')
+const embedMessage = new EmbedMessage()
 
 @injectable()
 export class MessageHandler {
@@ -78,75 +78,51 @@ export class MessageHandler {
     // Prevent this method from being called privately
     if (!guildId) {
       return message.reply(
-        validationWarning
-          .setTitle(
-            `:warning: Sorry, this method can't be used in direct messaging`
-          )
-          .setDescription(`Please use it in a channel.`)
+        embedMessage.warning({
+          title: `:warning: Sorry, this method can't be used in direct messaging`,
+          description: `Please use it in a channel.`
+        })
       )
     }
 
     const dao = this.daoDirectory[guildId]
     if (!dao) {
       return message.reply(
-        validationWarning
-          .setTitle(`:warning: Sorry, this DAO isn't connected yet to any DAO.`)
-          .setDescription(
+        embedMessage.warning({
+          title: `:warning: Sorry, this DAO isn't connected yet to any DAO.`,
+          description:
             `Please connect it to a DAO using the \`!setup\` command like this:` +
-              `\n\`!setup theNameOfYourDao\``
-          )
+            `\n\`!setup theNameOfYourDao\``
+        })
       )
     }
 
     if (!proposalMessage) {
       return message.reply(
-        validationWarning
-          .setTitle(`:warning: Invalid format`)
-          .setDescription(
-            `The proposal should follow this format:\n'\`!proposal [yyyy, MM, dd, HH:mm:ss] [message]'\``
-          )
+        embedMessage.warning({
+          title: `:warning: Invalid format`,
+          description: `The proposal should follow this format:\n'\`!proposal [yyyy, MM, dd, HH:mm:ss] [message]'\``
+        })
       )
     }
 
     if (proposalDeadlineTimestamp <= currentTime) {
       return message.reply(
-        validationWarning
-          .setTitle(
-            `:warning: The entered deadline for the voting period is already past`
-          )
-          .setDescription('Please try again with a future date and time.')
+        embedMessage.warning({
+          title: `:warning: The entered deadline for the voting period is already past`,
+          description: 'Please try again with a future date and time.'
+        })
       )
     } else {
-      const proposalEmbedMessage = new Discord.MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle(`New proposal ***${proposalMessage}***`)
-        .setURL(message.author.avatarURL() || '')
-        .setDescription(
-          `The request for creating the proposal ***${proposalMessage}*** has been received. React to this proposal to vote!`
-        )
-        .setThumbnail('attachment://aragon.png')
-        .addFields(
-          { name: 'Vote yes', value: ':thumbsup:', inline: true },
-          { name: 'Vote no', value: ':thumbsdown:', inline: true },
-          {
-            name: 'The time for voting will end on',
-            value: `${proposalDeadlineDate}`
-          }
-        )
-        .setTimestamp()
-        .setFooter(
-          `@${message.author.username}`,
-          message.author.displayAvatarURL()
-        )
-      return message.channel.send('@everyone', {
-        embed: proposalEmbedMessage,
-        files: [
-          {
-            attachment: 'src/static/aragon.png',
-            name: 'aragon.png'
-          }
-        ]
-      })
+      return message.channel.send(
+        '@everyone',
+        embedMessage.proposal({
+          proposalMessage,
+          proposalDeadlineDate,
+          footerMessage: `@${message.author.username}`,
+          authorUrl: message.author.displayAvatarURL()
+        })
+      )
     }
   }
 
@@ -164,15 +140,12 @@ export class MessageHandler {
       // Prevent this method from being called privately
       if (!guildId) {
         return message.reply(
-          validationWarning
-            .setTitle(
-              `:warning: Sorry, this method can't be used in direct messaging`
-            )
-            .setDescription(`Please use it in a channel.`)
-            .setFooter(
-              `Proposal ${proposalMessage}`,
-              message.author.displayAvatarURL()
-            )
+          embedMessage.warning({
+            title: `:warning: Sorry, this method can't be used in direct messaging`,
+            description: `Please use it in a channel.`,
+            footerMessage: `Proposal ${proposalMessage}`,
+            authorUrl: message.author.displayAvatarURL()
+          })
         )
       }
 
@@ -181,16 +154,12 @@ export class MessageHandler {
       setTimeout(() => {
         message.channel.send(
           '@everyone',
-          new Discord.MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle(
-              `:stopwatch: The time for voting the proposal: ***${proposalMessage}*** is over!`
-            )
-            .setDescription(`Creating Witnet data request...`)
-            .setFooter(
-              `Proposal ${proposalMessage}`,
-              message.author.displayAvatarURL()
-            )
+          embedMessage.info({
+            title: `:stopwatch: The time for voting the proposal: ***${proposalMessage}*** is over!`,
+            description: `Creating Witnet data request...`,
+            footerMessage: `Proposal ${proposalMessage}`,
+            authorUrl: message.author.displayAvatarURL()
+          })
         )
         console.log(
           `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
@@ -216,28 +185,22 @@ export class MessageHandler {
                 if (report) {
                   message.channel.send(
                     '@everyone',
-                    new Discord.MessageEmbed()
-                      .setColor('#0099ff')
-                      .setTitle('The data request result has been received')
-                      .setDescription(
-                        `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash}))`
-                      )
-                      .setFooter(
-                        `Proposal ${proposalMessage}`,
-                        message.author.displayAvatarURL()
-                      )
+                    embedMessage.info({
+                      title: 'The data request result has been received',
+                      description: `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash}))`,
+                      footerMessage: `Proposal ${proposalMessage}`,
+                      authorUrl: message.author.displayAvatarURL()
+                    })
                   )
                 } else {
                   message.channel.send(
                     '@everyone',
-                    errorMessage
-                      .setTitle(
-                        ':exclamation: There was an error reporting the proposal result'
-                      )
-                      .setFooter(
-                        `Proposal ${proposalMessage}`,
-                        message.author.displayAvatarURL()
-                      )
+                    embedMessage.error({
+                      title:
+                        ':exclamation: There was an error reporting the proposal result',
+                      footerMessage: `Proposal ${proposalMessage}`,
+                      authorUrl: message.author.displayAvatarURL()
+                    })
                   )
                 }
                 setTimeout(async () => {
@@ -248,28 +211,21 @@ export class MessageHandler {
                   if (transactionHash) {
                     message.channel.send(
                       '@everyone',
-                      new Discord.MessageEmbed()
-                        .setColor('#0099ff')
-                        .setTitle('Proposal executed')
-                        .setDescription(
-                          `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`
-                        )
-                        .setFooter(
-                          `Proposal ${proposalMessage}`,
-                          message.author.displayAvatarURL()
-                        )
+                      embedMessage.info({
+                        title: 'Proposal executed',
+                        description: `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`,
+                        footerMessage: `Proposal ${proposalMessage}`,
+                        authorUrl: message.author.displayAvatarURL()
+                      })
                     )
                   } else {
                     message.channel.send(
                       '@everyone',
-                      errorMessage
-                        .setTitle(
-                          `@everyone There was an error executing the proposal`
-                        )
-                        .setFooter(
-                          `Proposal ${proposalMessage}`,
-                          message.author.displayAvatarURL()
-                        )
+                      embedMessage.error({
+                        title: `@everyone There was an error executing the proposal`,
+                        footerMessage: `Proposal ${proposalMessage}`,
+                        authorUrl: message.author.displayAvatarURL()
+                      })
                     )
                   }
                 }, 60000)
@@ -297,29 +253,29 @@ export class MessageHandler {
     // Make sure a DAO name has been provided
     if (!daoName) {
       return message.reply(
-        validationWarning
-          .setTitle('The setup command should follow this format:')
-          .setDescription(`\`!setup theNameOfYourDao\``)
+        embedMessage.warning({
+          title: 'The setup command should follow this format:',
+          description: `\`!setup theNameOfYourDao\``
+        })
       )
     }
 
     // Reject requests from non-admin users
     if (!requester?.hasPermission('ADMINISTRATOR')) {
       return message.reply(
-        validationWarning.setTitle(
-          `Sorry, only users with Admin permission are allowed to setup this integration.`
-        )
+        embedMessage.warning({
+          title: `Sorry, only users with Admin permission are allowed to setup this integration.`
+        })
       )
     }
 
     // Prevent this method from being called privately
     if (!guildId) {
       return message.reply(
-        validationWarning
-          .setTitle(
-            `:warning: Sorry, this method can't be used in direct messaging.`
-          )
-          .setDescription(`Please use it in a channel.`)
+        embedMessage.warning({
+          title: `:warning: Sorry, this method can't be used in direct messaging.`,
+          description: `Please use it in a channel.`
+        })
       )
     }
 
@@ -327,49 +283,14 @@ export class MessageHandler {
     const dao = await this.subgraphClient.queryDaoByName(daoName)
     if (!dao) {
       return message.reply(
-        validationWarning.setTitle(
-          `:warning: Sorry, couldn't find a registered DAO named "${daoName}"`
-        )
+        embedMessage.warning({
+          title: `:warning: Sorry, couldn't find a registered DAO named "${daoName}"`
+        })
       )
     }
 
     // Keep track of the Discord server <> DAO name relation
     this.daoDirectory[guildId] = dao
-    const daoMessage = new Discord.MessageEmbed()
-      .setColor('#0099ff')
-      .setTitle('Congrats to you and your fellow Discord users!')
-      .setDescription(
-        `This server is now connected to the DAO named ***${daoName}***. **Remember to also add these other bots to your server**, otherwise the integration will fail:`
-      )
-      .setThumbnail('attachment://aragon.png')
-      .addFields(
-        {
-          name: 'Witnet Foundation Reactions Monitor',
-          value:
-            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=65536&scope=bot%20messages.read)',
-          inline: true
-        },
-        {
-          name: 'Aragon One Reactions Monitor',
-          value:
-            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806819543460610068&permissions=65536&scope=bot%20messages.read)',
-          inline: true
-        },
-        {
-          name: 'OtherPlane Reactions Monitor',
-          value:
-            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806821381844762625&permissions=65536&scope=bot%20messages.read)',
-          inline: true
-        }
-      )
-    return message.reply('@everyone', {
-      embed: daoMessage,
-      files: [
-        {
-          attachment: 'src/static/aragon.png',
-          name: 'aragon.png'
-        }
-      ]
-    })
+    return message.reply('@everyone', embedMessage.dao({ daoName }))
   }
 }
