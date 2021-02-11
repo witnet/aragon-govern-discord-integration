@@ -1,5 +1,4 @@
-import { Message } from 'discord.js'
-const Discord = require('discord.js')
+import Discord, { Message } from 'discord.js'
 import { inject, injectable } from 'inversify'
 import { createDataRequest } from './createDataRequest'
 import { parseProposalMessage } from './parseProposalMessage'
@@ -121,7 +120,7 @@ export class MessageHandler {
       const proposalEmbedMessage = new Discord.MessageEmbed()
         .setColor('#0099ff')
         .setTitle(`New proposal ***${proposalMessage}***`)
-        .setURL(message.author.avatarURL())
+        .setURL(message.author.avatarURL() || '')
         .setDescription(
           `The request for creating the proposal ***${proposalMessage}*** has been received. React to this proposal to vote!`
         )
@@ -231,13 +230,14 @@ export class MessageHandler {
                 } else {
                   message.channel.send(
                     '@everyone',
-                    errorMessage.setTitle(
-                      ':exclamation: There was an error reporting the proposal result'
-                    )
-                    .setFooter(
-                      `Proposal ${proposalMessage}`,
-                      message.author.displayAvatarURL()
-                    )
+                    errorMessage
+                      .setTitle(
+                        ':exclamation: There was an error reporting the proposal result'
+                      )
+                      .setFooter(
+                        `Proposal ${proposalMessage}`,
+                        message.author.displayAvatarURL()
+                      )
                   )
                 }
                 setTimeout(async () => {
@@ -262,13 +262,14 @@ export class MessageHandler {
                   } else {
                     message.channel.send(
                       '@everyone',
-                      errorMessage.setTitle(
-                        `@everyone There was an error executing the proposal`
-                      )
-                      .setFooter(
-                        `Proposal ${proposalMessage}`,
-                        message.author.displayAvatarURL()
-                      )
+                      errorMessage
+                        .setTitle(
+                          `@everyone There was an error executing the proposal`
+                        )
+                        .setFooter(
+                          `Proposal ${proposalMessage}`,
+                          message.author.displayAvatarURL()
+                        )
                     )
                   }
                 }, 60000)
