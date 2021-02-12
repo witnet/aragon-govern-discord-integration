@@ -1,7 +1,15 @@
-import Discord from 'discord.js'
+import Discord, { MessageEmbed } from 'discord.js'
+import { injectable } from 'inversify'
+import { EmbedMessageParams } from '../types'
 
+@injectable()
 export class EmbedMessage {
-  warning ({ title, description, footerMessage, authorUrl }: any) {
+  warning ({
+    title,
+    description,
+    footerMessage,
+    authorUrl
+  }: EmbedMessageParams): MessageEmbed {
     let validationWarning = new Discord.MessageEmbed()
       .setColor('#d09625')
       .setTitle(title)
@@ -14,7 +22,11 @@ export class EmbedMessage {
     return validationWarning
   }
 
-  error ({ title, footerMessage, authorUrl }: any) {
+  error ({
+    title,
+    footerMessage,
+    authorUrl
+  }: EmbedMessageParams): MessageEmbed {
     let errorMessage = new Discord.MessageEmbed()
       .setColor('#b9182f')
       .setTitle(title)
@@ -24,12 +36,30 @@ export class EmbedMessage {
     return errorMessage
   }
 
+  info ({
+    title,
+    description,
+    footerMessage,
+    authorUrl
+  }: EmbedMessageParams): MessageEmbed {
+    const infoMessage = new Discord.MessageEmbed()
+      .setColor('#0099ff')
+      .setTitle(title)
+    if (description) {
+      infoMessage.setDescription(description)
+    }
+    if (footerMessage) {
+      infoMessage.setFooter(footerMessage, authorUrl)
+    }
+    return infoMessage
+  }
+
   proposal ({
     proposalMessage,
     proposalDeadlineDate,
     authorUrl,
     footerMessage
-  }: any) {
+  }: EmbedMessageParams) {
     const proposalEmbedMessage = new Discord.MessageEmbed()
       .setColor('#0099ff')
       .setTitle(`New proposal ***${proposalMessage}***`)
@@ -58,7 +88,7 @@ export class EmbedMessage {
     }
   }
 
-  dao ({ daoName }: any) {
+  dao ({ daoName }: EmbedMessageParams) {
     const daoMessage = new Discord.MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Congrats to you and your fellow Discord users!')
@@ -95,18 +125,5 @@ export class EmbedMessage {
         }
       ]
     }
-  }
-
-  info ({ title, description, footerMessage, authorUrl }: any) {
-    const infoMessage = new Discord.MessageEmbed()
-      .setColor('#0099ff')
-      .setTitle(title)
-    if (description) {
-      infoMessage.setDescription(description)
-    }
-    if (footerMessage) {
-      infoMessage.setFooter(footerMessage, authorUrl)
-    }
-    return infoMessage
   }
 }

@@ -12,18 +12,21 @@ import { reportVotingResult } from './reportVotingResult'
 import { executeVotingResult } from './executeVotingResult'
 import { EmbedMessage } from './embedMessage'
 
-const embedMessage = new EmbedMessage()
-
 @injectable()
 export class MessageHandler {
   private commandFinder: CommandFinder
   private subgraphClient: SubgraphClient
   private daoDirectory: DaoDirectory
   public requestMessage: RequestMessage | null
+  private embedMessage: EmbedMessage
 
-  constructor (@inject(TYPES.CommandFinder) commandFinder: CommandFinder) {
+  constructor (
+    @inject(TYPES.CommandFinder) commandFinder: CommandFinder,
+    @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage
+  ) {
     this.commandFinder = commandFinder
     this.subgraphClient = new SubgraphClient()
+    this.embedMessage = embedMessage
     this.daoDirectory = {}
     this.requestMessage = null
   }
@@ -57,7 +60,7 @@ export class MessageHandler {
     // TODO: make a call to create a DAO
     return message.reply(log)
   }
-  //
+
   private newProposal (message: Message): Promise<Message> {
     this.requestMessage = parseProposalMessage(message)
     // define proposal message structure and parse new proposal message
@@ -78,7 +81,7 @@ export class MessageHandler {
     // Prevent this method from being called privately
     if (!guildId) {
       return message.reply(
-        embedMessage.warning({
+        this.embedMessage.warning({
           title: `:warning: Sorry, this method can't be used in direct messaging`,
           description: `Please use it in a channel.`
         })
@@ -88,7 +91,7 @@ export class MessageHandler {
     const dao = this.daoDirectory[guildId]
     if (!dao) {
       return message.reply(
-        embedMessage.warning({
+        this.embedMessage.warning({
           title: `:warning: Sorry, this DAO isn't connected yet to any DAO.`,
           description:
             `Please connect it to a DAO using the \`!setup\` command like this:` +
@@ -99,16 +102,16 @@ export class MessageHandler {
 
     if (!proposalMessage) {
       return message.reply(
-        embedMessage.warning({
+        this.embedMessage.warning({
           title: `:warning: Invalid format`,
-          description: `The proposal should follow this format:\n'\`!proposal [yyyy, MM, dd, HH:mm:ss] [message]'\``
+          description: `The proposal should follow this format:\n'\`!proposal [yyyy MM dd HH:mm:ss] [message]'\``
         })
       )
     }
 
     if (proposalDeadlineTimestamp <= currentTime) {
       return message.reply(
-        embedMessage.warning({
+        this.embedMessage.warning({
           title: `:warning: The entered deadline for the voting period is already past`,
           description: 'Please try again with a future date and time.'
         })
@@ -116,7 +119,7 @@ export class MessageHandler {
     } else {
       return message.channel.send(
         '@everyone',
-        embedMessage.proposal({
+        this.embedMessage.proposal({
           proposalMessage,
           proposalDeadlineDate,
           footerMessage: `@${message.author.username}`,
@@ -140,7 +143,7 @@ export class MessageHandler {
       // Prevent this method from being called privately
       if (!guildId) {
         return message.reply(
-          embedMessage.warning({
+          this.embedMessage.warning({
             title: `:warning: Sorry, this method can't be used in direct messaging`,
             description: `Please use it in a channel.`,
             footerMessage: `Proposal ${proposalMessage}`,
@@ -154,7 +157,7 @@ export class MessageHandler {
       setTimeout(() => {
         message.channel.send(
           '@everyone',
-          embedMessage.info({
+          this.embedMessage.info({
             title: `:stopwatch: The time for voting the proposal: ***${proposalMessage}*** is over!`,
             description: `Creating Witnet data request...`,
             footerMessage: `Proposal ${proposalMessage}`,
@@ -185,7 +188,7 @@ export class MessageHandler {
                 if (report) {
                   message.channel.send(
                     '@everyone',
-                    embedMessage.info({
+                    this.embedMessage.info({
                       title: 'The data request result has been received',
                       description: `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash}))`,
                       footerMessage: `Proposal ${proposalMessage}`,
@@ -195,7 +198,7 @@ export class MessageHandler {
                 } else {
                   message.channel.send(
                     '@everyone',
-                    embedMessage.error({
+                    this.embedMessage.error({
                       title:
                         ':exclamation: There was an error reporting the proposal result',
                       footerMessage: `Proposal ${proposalMessage}`,
@@ -211,7 +214,7 @@ export class MessageHandler {
                   if (transactionHash) {
                     message.channel.send(
                       '@everyone',
-                      embedMessage.info({
+                      this.embedMessage.info({
                         title: 'Proposal executed',
                         description: `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`,
                         footerMessage: `Proposal ${proposalMessage}`,
@@ -221,7 +224,7 @@ export class MessageHandler {
                   } else {
                     message.channel.send(
                       '@everyone',
-                      embedMessage.error({
+                      this.embedMessage.error({
                         title: `@everyone There was an error executing the proposal`,
                         footerMessage: `Proposal ${proposalMessage}`,
                         authorUrl: message.author.displayAvatarURL()
@@ -253,7 +256,7 @@ export class MessageHandler {
     // Make sure a DAO name has been provided
     if (!daoName) {
       return message.reply(
-        embedMessage.warning({
+        this.embedMessage.warning({
           title: 'The setup command should follow this format:',
           description: `\`!setup theNameOfYourDao\``
         })
@@ -263,7 +266,7 @@ export class MessageHandler {
     // Reject requests from non-admin users
     if (!requester?.hasPermission('ADMINISTRATOR')) {
       return message.reply(
-        embedMessage.warning({
+        this.embedMessage.warning({
           title: `Sorry, only users with Admin permission are allowed to setup this integration.`
         })
       )
@@ -272,7 +275,7 @@ export class MessageHandler {
     // Prevent this method from being called privately
     if (!guildId) {
       return message.reply(
-        embedMessage.warning({
+        this.embedMessage.warning({
           title: `:warning: Sorry, this method can't be used in direct messaging.`,
           description: `Please use it in a channel.`
         })
@@ -283,7 +286,7 @@ export class MessageHandler {
     const dao = await this.subgraphClient.queryDaoByName(daoName)
     if (!dao) {
       return message.reply(
-        embedMessage.warning({
+        this.embedMessage.warning({
           title: `:warning: Sorry, couldn't find a registered DAO named "${daoName}"`
         })
       )
@@ -291,6 +294,6 @@ export class MessageHandler {
 
     // Keep track of the Discord server <> DAO name relation
     this.daoDirectory[guildId] = dao
-    return message.reply('@everyone', embedMessage.dao({ daoName }))
+    return message.reply('@everyone', this.embedMessage.dao({ daoName }))
   }
 }
