@@ -164,7 +164,7 @@ export class MessageHandler {
         description: proposalDescription,
         createdAt: currentTime,
         deadline: proposalDeadlineTimestamp,
-        daoName: this.daoDirectory[guildId].name 
+        daoName: this.daoDirectory[guildId].name
       })
 
       longSetTimeout(() => {

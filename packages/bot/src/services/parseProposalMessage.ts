@@ -39,7 +39,7 @@ export function parseProposalMessage (message: Message): RequestMessage {
     messageId,
     proposalDeadlineTimestamp,
     proposalDeadlineDate,
-    proposalDescription,
+    proposalDescription
   }
 }
 

@@ -77,6 +77,20 @@ export class Bot {
       this.messageHandler.handle(message)
     })
 
+    this.client.on('messageReactionAdd', async (reaction, user) => {
+      let messageId = reaction.message.id
+      this.proposalRepository
+        .getActives()
+        .then(async (proposals: Array<Proposal>) => {
+          const isActiveProposal = proposals.find(proposal => {
+            return proposal.messageId === messageId
+          })
+          if (!isActiveProposal) {
+            await reaction.users.remove(user.id)
+          }
+        })
+    })
+
     return this.login()
   }
 
