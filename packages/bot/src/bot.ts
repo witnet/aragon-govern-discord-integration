@@ -23,6 +23,7 @@ import { ProposalRepository } from './database'
 import { scheduleDataRequest } from './services/scheduleDataRequest'
 import { SubgraphClient } from './services/subgraph'
 import { EmbedMessage } from './services/embedMessage'
+import { longSetTimeout } from './utils/longSetTimeout'
 
 const defaultPositiveReactionList: Array<PositiveReaction> = [Reaction.ThumbsUp]
 const defaultNegativeReactionList: Array<NegativeReaction> = [
@@ -85,7 +86,7 @@ export class Bot {
       let message: Message | null | void
       proposals.forEach((proposal: Proposal) => {
         if (!hasProposalExpired(proposal)) {
-          setTimeout(async () => {
+          longSetTimeout(async () => {
             dao = await this.subgraphClient.queryDaoByName(proposal.daoName)
 
             message = await getMessage(

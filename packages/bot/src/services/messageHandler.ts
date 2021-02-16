@@ -8,6 +8,7 @@ import { SubgraphClient } from './subgraph'
 import { EmbedMessage } from './embedMessage'
 import { ProposalRepository } from '../database'
 import { scheduleDataRequest } from './scheduleDataRequest'
+import { longSetTimeout } from '../utils/longSetTimeout'
 
 @injectable()
 export class MessageHandler {
@@ -166,8 +167,7 @@ export class MessageHandler {
         daoName: this.daoDirectory[guildId].name 
       })
 
-      // call createDataRequest with channelId and messageId
-      setTimeout(() => {
+      longSetTimeout(() => {
         scheduleDataRequest(this.embedMessage)(channelId, messageId, message, dao, proposalDescription)
 
         this.requestMessage = null

@@ -1,5 +1,6 @@
 import { parseProposalMessage } from '../../src/services/parseProposalMessage'
 import { Message} from 'discord.js'
+
 describe('parseProposalMessage', () => {
   it('returns the message content', () => {
     const message = {
