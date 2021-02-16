@@ -12,13 +12,13 @@ export async function reportVotingResult (
   const isListening = await web3.isListening()
 
   if (dao && isListening) {
-    const { payload, transactionHash } = await web3.schedule(
+    return await web3.schedule(
       dao,
       deadline,
       '0x0000000000000000000000000000000000000000000000000000000000000000',
       `0x${drTxHash}`
     )
-    return { payload, transactionHash }
+
   } else {
     return null
   }

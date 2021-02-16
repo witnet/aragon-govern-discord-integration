@@ -36,7 +36,7 @@ export class Web3Client {
     executionTime: string | number,
     allowFailuresMap: string = '0x0000000000000000000000000000000000000000000000000000000000000000',
     proof: string,
-  ) {
+  ): Promise<{ payload: Payload, transactionHash: string } | null> {
     const queue = await new this.client.eth.Contract((<any>queueAbi).abi, dao.queue.address)
     const payload = {
       nonce: dao.queue.queued.length + 1,
@@ -52,7 +52,7 @@ export class Web3Client {
       payload,
     })
       .send({ from: GETH_ADDRESS, gas: GAS_LIMIT })
-      .then(function (data: any) {
+      .then(function (data: { payload: Payload, transactionHash: string }) {
         console.log("Schedule transaction successfully sent:", data.transactionHash)
         return {
           payload,
