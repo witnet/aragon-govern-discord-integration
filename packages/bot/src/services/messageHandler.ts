@@ -168,7 +168,13 @@ export class MessageHandler {
       })
 
       longSetTimeout(() => {
-        scheduleDataRequest(this.embedMessage)(channelId, messageId, message, dao, proposalDescription)
+        scheduleDataRequest(this.embedMessage)(
+          channelId,
+          messageId,
+          message,
+          dao,
+          proposalDescription
+        )
 
         this.requestMessage = null
         // TODO: it can overflow if the proposal is scheduled far in the future.

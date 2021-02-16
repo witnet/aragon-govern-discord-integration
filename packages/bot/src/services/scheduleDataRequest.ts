@@ -1,12 +1,18 @@
 import { Message } from 'discord.js'
-
+import { ENVIRONMENT } from '../config'
 import { reportVotingResult } from './reportVotingResult'
 import { executeVotingResult } from './executeVotingResult'
 import { createDataRequest } from './createDataRequest'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
 import { RegistryEntry } from './subgraph/types'
+import { EtherscanUrl, Url } from '../types'
 import { EmbedMessage } from './embedMessage'
+
+const etherscanUrl: Url = {
+  development: EtherscanUrl.development,
+  production: EtherscanUrl.production
+}
 
 export function scheduleDataRequest (embedMessage: EmbedMessage) {
   return (
@@ -49,7 +55,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                 '@everyone',
                 embedMessage.info({
                   title: 'The data request result has been received',
-                  description: `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://rinkeby.etherscan.io/tx/${report?.transactionHash}))`,
+                  description: `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://${etherscanUrl[ENVIRONMENT]}/tx/${report?.transactionHash}))`,
                   footerMessage: `Proposal ${proposalDescription}`,
                   authorUrl: message.author.displayAvatarURL()
                 })
@@ -75,7 +81,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                   '@everyone',
                   embedMessage.info({
                     title: 'Proposal executed',
-                    description: `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://rinkeby.etherscan.io/tx/${transactionHash})`,
+                    description: `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://${etherscanUrl[ENVIRONMENT]}/tx/${transactionHash})`,
                     footerMessage: `Proposal ${proposalDescription}`,
                     authorUrl: message.author.displayAvatarURL()
                   })

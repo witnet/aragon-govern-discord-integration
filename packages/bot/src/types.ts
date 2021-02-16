@@ -53,6 +53,15 @@ export enum Reaction {
   ThumbsDown = '👎'
 }
 
+export enum EtherscanUrl {
+  development = 'rinkeby.etherscan.io',
+  production = 'etherscan.io',
+}
+
+export interface Url {
+  [key: string]: EtherscanUrl,
+}
+
 export type PositiveReaction = Reaction.ThumbsUp
 export type NegativeReaction = Reaction.ThumbsDown
 
