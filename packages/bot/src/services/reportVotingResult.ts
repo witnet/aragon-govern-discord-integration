@@ -18,6 +18,8 @@ export async function reportVotingResult (
       '0x0000000000000000000000000000000000000000000000000000000000000000',
       `0x${drTxHash}`
     )
+    console.log("when reporting vote result the nonce is:",dao.queue.queued.length )
+    dao.queue.queued.length += 1
     return { payload, transactionHash }
   } else {
     return null

@@ -18,7 +18,7 @@ const RegistryEntryBase = gql`
         resolver
         rules
       }
-      queued {
+      queued (skip:$skip, first:$first){
         id
         state
         payload {
@@ -42,7 +42,7 @@ const RegistryEntryBase = gql`
 `
 
 export const QUERY_DAOS = gql`
-  query RegistryEntry {
+  query RegistryEntry ($skip: Int, $first: Int){
     registryEntries {
       ...RegistryEntryBase
     }
@@ -51,7 +51,7 @@ export const QUERY_DAOS = gql`
 `
 
 export const QUERY_DAO = gql`
-  query RegistryEntry($name: String!) {
+  query RegistryEntry($name: String!, $skip: Int, $first: Int) {
     registryEntries(where: { name: $name }, first: 1) {
         ...RegistryEntryBase
     }

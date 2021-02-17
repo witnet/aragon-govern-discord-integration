@@ -41,11 +41,34 @@ export class SubgraphClient {
   }
 
   async queryDaoByName(name: string): Promise<RegistryEntry | null> {
+    await this.queryNextNonce(name)
     const result = await this.fetchResult<{ registryEntries: RegistryEntry[] }>(
       [QUERY_DAO, { name }],
       `Unexpected result when queryin DAO by name ${name}.`
-    )
+      )
     return result.registryEntries && result.registryEntries.length > 0 ? result.registryEntries[0] : null
+  }
+
+  // TODO: review code 
+  async queryNextNonce(name: string): Promise<number> {
+    let hasMore = false
+    let result: {registryEntries: Array<any> }= { registryEntries: []}
+    let limit = 10
+    let counter = 1
+    
+    while (!hasMore) {
+      result = await this.fetchResult<{ registryEntries: RegistryEntry[] }>(
+        [QUERY_DAO, { name, first: limit, skip: limit*(counter - 1) }],
+        `Unexpected result when queryin DAO by name ${name}.`
+        )
+        if (result.registryEntries[0].queue.queued.length === limit) {
+          counter++
+        } else {
+          hasMore = true
+        }
+        
+    } 
+    return (counter-1)*limit + result.registryEntries.length + 3
   }
 
 }
