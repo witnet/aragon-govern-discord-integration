@@ -48,4 +48,24 @@ export class SubgraphClient {
     return result.registryEntries && result.registryEntries.length > 0 ? result.registryEntries[0] : null
   }
 
+  async queryNextNonce(name: string): Promise<number> {
+    let hasMore = false
+    let result: {registryEntries: Array<any> }= { registryEntries: []}
+    let limit = 10
+    let counter = 1
+    
+    while (!hasMore) {
+      result = await this.fetchResult<{ registryEntries: RegistryEntry[] }>(
+        [QUERY_DAO, { name, first: limit, skip: limit*(counter - 1) }],
+        `Unexpected result when queryin DAO by name ${name}.`
+      )
+      if (result.registryEntries[0].queue.queued.length === limit) {
+        counter++
+      } else {
+        hasMore = true
+      }   
+    } 
+    return (counter-1)*limit + result.registryEntries[0].queue.queued.length + 1
+  }
+
 }

@@ -2,6 +2,7 @@ import Web3 from "web3"
 
 import queueAbi from '../contracts/GovernQueue.json';
 import { Action, Payload, RegistryEntry } from "./subgraph/types";
+import { SubgraphClient } from './subgraph' ;
 
 // TODO: move configuration variables to config file
 const PROVIDER_URL = process.env.WEB3_PROVIDER || "http://localhost:8544"
@@ -38,8 +39,9 @@ export class Web3Client {
     proof: string,
   ): Promise<{ payload: Payload, transactionHash: string } | null> {
     const queue = await new this.client.eth.Contract((<any>queueAbi).abi, dao.queue.address)
+    const subgraphClient = new SubgraphClient()
     const payload = {
-      nonce: dao.queue.queued.length + 1,
+      nonce : await subgraphClient.queryNextNonce(dao.name),
       executionTime,
       submitter: GETH_ADDRESS,
       executor: dao.executor.address,
