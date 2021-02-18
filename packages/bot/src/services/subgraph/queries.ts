@@ -18,7 +18,7 @@ const RegistryEntryBase = gql`
         resolver
         rules
       }
-      queued {
+      queued (first: 1000) {
         id
         state
         payload {
