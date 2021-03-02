@@ -16,6 +16,8 @@ export class MessageHandler {
   private subgraphClient: SubgraphClient
   private daoDirectory: DaoDirectory
   public requestMessage: RequestMessage | null
+  public role: string | null
+  public isUserAllowed: boolean
   private embedMessage: EmbedMessage
   private proposalRepository: ProposalRepository
 
@@ -29,6 +31,8 @@ export class MessageHandler {
     this.embedMessage = embedMessage
     this.daoDirectory = {}
     this.requestMessage = null
+    this.role = null
+    this.isUserAllowed = false
     this.subgraphClient = subgraphClient
     this.proposalRepository = proposalRepository
   }
@@ -37,7 +41,8 @@ export class MessageHandler {
     if (!message.author.bot) {
       if (this.commandFinder.isSetupMessage(message.content)) {
         return this.setup(message)
-      } else if (this.commandFinder.isNewDaoMessage(message.content)) {
+      }
+      if (this.commandFinder.isNewDaoMessage(message.content)) {
         return MessageHandler.newDao(message)
       } else if (this.commandFinder.isNewProposalMessage(message.content)) {
         return this.newProposal(message)
@@ -80,6 +85,27 @@ export class MessageHandler {
         `Received a request for creating a proposal with message_id='${messageId}' and deadline=${proposalDeadlineDate}`
     )
 
+    if (!this.role) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: You need to set the role of the users allowed to make proposals`,
+          description: `\`!role admin\``
+        })
+      )
+    }
+    const isAllowed = message.member?.roles.cache.some(
+      role => role.name === this.role
+    )
+
+    if (this.role && !isAllowed) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: Sorry, you are not allowed to create a proposal`,
+          description: `Only administrators can change permissions`
+        })
+      )
+    }
+
     // Prevent this method from being called privately
     if (!guildId) {
       return message.reply(
@@ -97,7 +123,7 @@ export class MessageHandler {
           title: `:warning: Sorry, this Discord server isn't connected yet to any DAO.`,
           description:
             `Please connect it to a DAO using the \`!setup\` command like this:` +
-            `\n\`!setup theNameOfYourDao\``
+            `\n\`!setup userRole theNameOfYourDao\``
         })
       )
     }
@@ -195,7 +221,9 @@ export class MessageHandler {
   }
 
   private async setup (message: Message): Promise<Message> {
-    const { daoName, guildId, requester } = parseSetupMessage(message)
+    const { daoName, guildId, requester, roleAllowed } = parseSetupMessage(
+      message
+    )
     console.log(
       `Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`
     )
@@ -205,7 +233,7 @@ export class MessageHandler {
       return message.reply(
         this.embedMessage.warning({
           title: 'The setup command should follow this format:',
-          description: `\`!setup theNameOfYourDao\``
+          description: `\`!setup userRole theNameOfYourDao\``
         })
       )
     }
@@ -239,8 +267,34 @@ export class MessageHandler {
       )
     }
 
+    const roles = message.guild?.roles.cache.map(role => role.name)
+    const roleOptions = `Select one of the following roles: \`${roles?.join(
+      '`, `'
+    )}\`. Make sure you are following this format \`!setup userRole theNameOfYourDao\``
+    if (!roleAllowed) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: Please select the role of the users allowed to create proposals`,
+          description: roleOptions
+        })
+      )
+    }
+
+    if (!roles?.includes(roleAllowed)) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: Please select the role of the users allowed to create proposals`,
+          description: roleOptions
+        })
+      )
+    }
+
     // Keep track of the Discord server <> DAO name relation
     this.daoDirectory[guildId] = dao
-    return message.reply('@everyone', this.embedMessage.dao({ daoName }))
+    this.role = roleAllowed
+    return message.reply(
+      '@everyone',
+      this.embedMessage.dao({ daoName, role: this.role })
+    )
   }
 }

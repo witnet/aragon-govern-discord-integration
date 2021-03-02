@@ -15,6 +15,10 @@ export class CommandFinder {
     return message.search(Command.Setup) == 0
   }
 
+  public isSetupRoleMessage (message: string) {
+    return message.search(Command.Role) == 0
+  }
+
   public isProposalMessage (message: string) {
     return message.includes('New proposal')
   }

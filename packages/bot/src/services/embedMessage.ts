@@ -88,12 +88,12 @@ export class EmbedMessage {
     }
   }
 
-  dao ({ daoName }: EmbedMessageParams) {
+  dao ({ daoName, role }: EmbedMessageParams) {
     const daoMessage = new Discord.MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Congrats to you and your fellow Discord users!')
       .setDescription(
-        `This server is now connected to the DAO named ***${daoName}***. **Remember to also add these other bots to your server**, otherwise the integration will fail:`
+        `This server is now connected to the DAO named ***${daoName}***. Only users with the role ***${role}*** can create proposals. **Remember to also add these other bots to your server**, otherwise the integration will fail:`
       )
       .setThumbnail('attachment://aragon.png')
       .addFields(

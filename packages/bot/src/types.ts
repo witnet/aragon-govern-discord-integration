@@ -26,6 +26,7 @@ export type EmbedMessageParams = {
   authorUrl?: string
   footerMessage?: string
   daoName?: string
+  role?: string
 }
 
 export type RequestMessage = {
@@ -40,7 +41,8 @@ export type RequestMessage = {
 export enum Command {
   NewDao = '!new',
   NewProposal = '!proposal',
-  Setup = '!setup'
+  Setup = '!setup',
+  Role = '!role'
 }
 
 export type ReactionCount = {
