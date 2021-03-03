@@ -8,6 +8,7 @@ export const TYPES = {
   CommandFinder: Symbol('CommandFinder'),
   Database: Symbol('Database'),
   ProposalRepository: Symbol('ProposalRepository'),
+  SetupRepository: Symbol('SetupRepository'),
   SubgraphClient: Symbol('SubgraphClient'),
   EmbedMessage: Symbol('EmbedMessage')
 }
@@ -16,10 +17,11 @@ export const TYPES = {
 export interface DaoDirectory {
   [guildId: string]: RegistryEntry
 }
-
+// TODO: remove null
 export type Setup = {
   role: string
   daoName: string
+  guildId: string
 }
 
 // Maps guild IDs to DAOs

@@ -1,11 +1,12 @@
+import { Guild } from 'discord.js'
 import 'reflect-metadata'
 
 import { Database, ProposalRepository, SetupRepository } from '../src/database'
 
-async function clearDatabase () {
+async function clearDatabase (table: 'proposals' | 'setup') {
   const db = new Database('./bot.db')
 
-  const sql = `DROP TABLE IF EXISTS proposals`
+  const sql = `DROP TABLE IF EXISTS ${table}`
 
   return await new Promise((resolve, reject) => {
     setTimeout(async () => {
@@ -16,7 +17,7 @@ async function clearDatabase () {
 
 describe('database', () => {
   afterAll(() => {
-    return clearDatabase()
+    return clearDatabase('proposals')
   })
 
   it('should allow create table', async () => {
@@ -155,9 +156,9 @@ describe('database', () => {
   })
 })
 
-describe('SetupRepository', () => {
+describe('setup database', () => {
   afterAll(() => {
-    return clearDatabase()
+    return clearDatabase('setup')
   })
 
   it('should allow create table', async () => {
@@ -166,7 +167,8 @@ describe('SetupRepository', () => {
     const sql = `
       CREATE TABLE IF NOT EXISTS setup (
         role TEXT,
-        daoName TEXT
+        daoName TEXT,
+        guildId TEXT
       )
     `
     const result = await new Promise((resolve, reject) => {
@@ -184,23 +186,26 @@ describe('SetupRepository', () => {
     const createTableSql = `
       CREATE TABLE IF NOT EXISTS setup (
         role TEXT,
-        daoName TEXT
+        daoName TEXT,
+        guildId TEXT
       )
     `
 
     const insertSql = `
-        INSERT INTO setup (role, daoName)
-        VALUES (?, ?) 
+        INSERT INTO setup (role, daoName, guildId)
+        VALUES (?, ?, ?) 
     `
 
     const result = await new Promise((resolve, reject) => {
       setTimeout(async () => {
         const role = 'admin'
         const daoName = 'bitconnect'
+        const guildId = '1234'
         await db.run(createTableSql)
         const a = await db.run(insertSql, [
           role,
-          daoName
+          daoName,
+          guildId
         ])
         resolve(a)
       }, 1000)
@@ -213,6 +218,7 @@ describe('SetupRepository', () => {
     const db = new Database('./bot.db')
     const role = 'admin'
     const daoName = 'bitconnect'
+    const guildId = '1234'
     const result = await new Promise((resolve, reject) => {
       setTimeout(async () => {
         const sql = `SELECT * FROM setup`
@@ -223,7 +229,8 @@ describe('SetupRepository', () => {
 
     const row = {
       role,
-      daoName
+      daoName,
+      guildId
     }
     const expected = [row]
 
@@ -234,16 +241,18 @@ describe('SetupRepository', () => {
     const db = new Database('./bot.db')
     const role = '@everybody'
     const daoName = 'bitconnect'
+    const guildId = '1234'
     const result = await new Promise((resolve, reject) => {
       setTimeout(async () => {
         const updateSql = `
           UPDATE setup
           SET 
             role=?,
-            daoName=?
+            daoName=?,
+            guildId=?
         `
         const sql = `SELECT * FROM setup`
-        await db.all(updateSql, [role, daoName])
+        await db.all(updateSql, [role, daoName, guildId])
         const a = await db.all(sql)
         resolve(a)
       }, 1000)
@@ -251,7 +260,8 @@ describe('SetupRepository', () => {
 
     const row = {
       role,
-      daoName
+      daoName,
+      guildId
     }
     const expected = [row]
 
@@ -259,9 +269,95 @@ describe('SetupRepository', () => {
   })
 })
 
+describe('SetupRepository', () => {
+  afterAll(() => {
+    return clearDatabase('setup')
+  })
+  it('create table setup', async () => {
+    const database = new Database()
+    const runMock = jest.fn()
+    database.run = runMock
+    const setupRepository = new SetupRepository(database)
+    await setupRepository.createTable()
+
+    const sql = `
+      CREATE TABLE IF NOT EXISTS setup (
+        role TEXT,
+        daoName TEXT,
+        guildId TEXT
+      )
+    `
+    expect(runMock).toHaveBeenNthCalledWith(1, sql)
+  })
+  it('inset values into setup table', async () => {
+    const database = new Database()
+    const runMock = jest.fn()
+
+    database.run = runMock
+
+    const role = 'admin'
+    const daoName = 'bitconnect'
+    const guildId = '1234'
+
+    const setupRepository = new SetupRepository(database)
+
+    await setupRepository.insert({
+      role,
+      daoName,
+      guildId
+    })
+  })
+  it('update values in setup table', async() => {
+    const database = new Database()
+    const runMock = jest.fn()
+    database.run = runMock
+
+    const role = 'admin'
+    const daoName = 'bitconnect'
+    const guildId = '1234'
+    
+    const setupRepository = new SetupRepository(database)
+    await setupRepository.updateOnly({
+      role,
+      daoName,
+      guildId
+    })
+
+    const sql = `
+      UPDATE setup
+      SET 
+        role=?,
+        daoName=?,
+        guildId=?
+    `
+    expect(runMock).toHaveBeenNthCalledWith(1, sql, [
+      role,
+      daoName,
+      guildId
+    ])
+  })
+  it('update setup values', () => {
+    const database = new Database()
+    const allMock = jest.fn()
+
+    database.all = allMock
+
+    const setupRepository = new SetupRepository(database)
+
+    setupRepository.getSetup()
+
+    const sql = `
+      SELECT *
+      FROM setup
+    `
+    expect(allMock.mock.calls[0][0]).toBe(sql)
+    expect(typeof allMock.mock.calls[0][0]).toBe('string')
+  })
+})
+
 describe('ProposalRepository', () => {
   afterAll(() => {
-    return clearDatabase()
+    return clearDatabase('proposals')
   })
 
   it('createTable should create a proposals table', async () => {

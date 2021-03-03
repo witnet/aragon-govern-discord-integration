@@ -3,10 +3,10 @@ import { inject, injectable } from 'inversify'
 import { parseProposalMessage } from './parseProposalMessage'
 import { parseSetupMessage } from './parseSetupMessage'
 import { CommandFinder } from './commandFinder'
-import { TYPES, RequestMessage, DaoDirectory, Proposal } from '../types'
+import { TYPES, RequestMessage, DaoDirectory, Proposal, Setup } from '../types'
 import { SubgraphClient } from './subgraph'
 import { EmbedMessage } from './embedMessage'
-import { ProposalRepository } from '../database'
+import { ProposalRepository, SetupRepository } from '../database'
 import { scheduleDataRequest } from './scheduleDataRequest'
 import { longSetTimeout } from '../utils/longSetTimeout'
 
@@ -15,29 +15,47 @@ export class MessageHandler {
   private commandFinder: CommandFinder
   private subgraphClient: SubgraphClient
   private daoDirectory: DaoDirectory
+  public initialSetup: Setup | null
   public requestMessage: RequestMessage | null
-  public role: string | null
   public isUserAllowed: boolean
   private embedMessage: EmbedMessage
   private proposalRepository: ProposalRepository
+  private setupRepository: SetupRepository
 
   constructor (
     @inject(TYPES.CommandFinder) commandFinder: CommandFinder,
     @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage,
     @inject(TYPES.ProposalRepository) proposalRepository: ProposalRepository,
+    @inject(TYPES.SetupRepository) setupRepository: SetupRepository,
     @inject(TYPES.SubgraphClient) subgraphClient: SubgraphClient
   ) {
     this.commandFinder = commandFinder
     this.embedMessage = embedMessage
+    this.initialSetup = null
     this.daoDirectory = {}
     this.requestMessage = null
-    this.role = null
     this.isUserAllowed = false
     this.subgraphClient = subgraphClient
     this.proposalRepository = proposalRepository
+    this.setupRepository = setupRepository
+  }
+  private async loadSetup () {
+    const savedSetup = await this.setupRepository.getSetup()
+    if (savedSetup) {
+      const dao = await this.subgraphClient.queryDaoByName(savedSetup.daoName)
+      if (dao) {
+        this.daoDirectory[savedSetup.guildId] = dao
+      }
+      this.initialSetup = savedSetup
+    }
   }
 
-  handle (message: Message): Promise<Message | Array<Message>> | undefined {
+  async handle (
+    message: Message
+  ): Promise<Message | Array<Message> | undefined> {
+    if (!this.initialSetup) {
+      await this.loadSetup()
+    }
     if (!message.author.bot) {
       if (this.commandFinder.isSetupMessage(message.content)) {
         return this.setup(message)
@@ -85,7 +103,17 @@ export class MessageHandler {
         `Received a request for creating a proposal with message_id='${messageId}' and deadline=${proposalDeadlineDate}`
     )
 
-    if (!this.role) {
+    if (!this.initialSetup) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: Sorry, you need a setup to create proposals`,
+          description:
+            `Please create a setup as following: \`!setup\` command like this:` +
+            `\n\`!setup userRole theNameOfYourDao\``
+        })
+      )
+    }
+    if (!this.initialSetup.role) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: You need to set the role of the users allowed to make proposals`,
@@ -93,11 +121,12 @@ export class MessageHandler {
         })
       )
     }
+
     const isAllowed = message.member?.roles.cache.some(
-      role => role.name === this.role
+      role => role.name === this.initialSetup?.role
     )
 
-    if (this.role && !isAllowed) {
+    if (this.initialSetup.role && !isAllowed) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Sorry, you are not allowed to create a proposal`,
@@ -116,8 +145,7 @@ export class MessageHandler {
       )
     }
 
-    const dao = this.daoDirectory[guildId]
-    if (!dao) {
+    if (!this.initialSetup.daoName) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Sorry, this Discord server isn't connected yet to any DAO.`,
@@ -181,7 +209,6 @@ export class MessageHandler {
       }
 
       const dao = this.daoDirectory[guildId]
-
       // TODO: Handle error saving proposal
       this.saveProposal({
         messageId,
@@ -190,7 +217,7 @@ export class MessageHandler {
         description: proposalDescription,
         createdAt: currentTime,
         deadline: proposalDeadlineTimestamp,
-        daoName: this.daoDirectory[guildId].name
+        daoName: dao.name
       })
 
       longSetTimeout(() => {
@@ -220,6 +247,24 @@ export class MessageHandler {
     }
   }
 
+  private async saveSetup (setup: Setup) {
+    if (this.initialSetup) {
+      try {
+        this.setupRepository.updateOnly(setup)
+      } catch (error) {
+        // TODO. handle error
+        console.log('Error saving setup', setup)
+      }
+    } else {
+      try {
+        this.setupRepository.insert(setup)
+      } catch (error) {
+        // TODO. handle error
+        console.log('Error saving setup', setup)
+      }
+    }
+  }
+
   private async setup (message: Message): Promise<Message> {
     const { daoName, guildId, requester, roleAllowed } = parseSetupMessage(
       message
@@ -227,7 +272,6 @@ export class MessageHandler {
     console.log(
       `Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`
     )
-
     // Make sure a DAO name has been provided
     if (!daoName) {
       return message.reply(
@@ -291,10 +335,10 @@ export class MessageHandler {
 
     // Keep track of the Discord server <> DAO name relation
     this.daoDirectory[guildId] = dao
-    this.role = roleAllowed
+    this.saveSetup({ daoName, role: roleAllowed, guildId })
     return message.reply(
       '@everyone',
-      this.embedMessage.dao({ daoName, role: this.role })
+      this.embedMessage.dao({ daoName, role: roleAllowed })
     )
   }
 }

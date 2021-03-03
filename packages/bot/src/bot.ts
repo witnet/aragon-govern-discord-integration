@@ -19,7 +19,7 @@ import {
 import { RegistryEntry } from './services/subgraph/types'
 
 import { MessageHandler } from './services/messageHandler'
-import { ProposalRepository } from './database'
+import { ProposalRepository, SetupRepository } from './database'
 import { scheduleDataRequest } from './services/scheduleDataRequest'
 import { SubgraphClient } from './services/subgraph'
 import { EmbedMessage } from './services/embedMessage'
@@ -37,6 +37,7 @@ export class Bot {
   private token: string
   private messageHandler: MessageHandler
   private proposalRepository: ProposalRepository
+  private setupRepository: SetupRepository
   private subgraphClient: SubgraphClient
   private embedMessage: EmbedMessage
 
@@ -47,6 +48,7 @@ export class Bot {
     @inject(TYPES.Token) token: string,
     @inject(TYPES.MessageHandler) messageHandler: MessageHandler,
     @inject(TYPES.ProposalRepository) proposalRepository: ProposalRepository,
+    @inject(TYPES.SetupRepository) setupRepository: SetupRepository,
     @inject(TYPES.SubgraphClient) subgraphClient: SubgraphClient,
     @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage
   ) {
@@ -54,6 +56,7 @@ export class Bot {
     this.token = token
     this.messageHandler = messageHandler
     this.proposalRepository = proposalRepository
+    this.setupRepository = setupRepository
     this.subgraphClient = subgraphClient
     this.embedMessage = embedMessage
   }
@@ -68,11 +71,11 @@ export class Bot {
     return this.loggedIn
   }
 
-  public listen (): Promise<string> {
+  public async listen (): Promise<string> {
     console.log('[BOT]: Listening discord server')
 
-    this.proposalRepository.createTable()
-
+    await this.proposalRepository.createTable()
+    await this.setupRepository.createTable()
     this.client.on('message', (message: Message) => {
       this.messageHandler.handle(message)
     })

@@ -56,7 +56,8 @@ export class SetupRepository {
     const sql = `
       CREATE TABLE IF NOT EXISTS setup (
         role TEXT,
-        daoName TEXT
+        daoName TEXT,
+        guildId TEXT
       )
     `
     return this.db.run(sql)
@@ -64,13 +65,10 @@ export class SetupRepository {
 
   async insert (setup: Setup) {
     const sql = `
-      INSERT INTO setup (role, daoName)
-      VALUES (?, ?)
+      INSERT INTO setup (role, daoName, guildId)
+      VALUES (?, ?, ?)
     `
-    return await this.db.run(sql, [
-      setup.role,
-      setup.daoName
-    ])
+    return await this.db.run(sql, [setup.role, setup.daoName, setup.guildId])
   }
 
   async updateOnly (setup: Setup) {
@@ -78,12 +76,10 @@ export class SetupRepository {
       UPDATE setup
       SET 
         role=?,
-        daoName=?
+        daoName=?,
+        guildId=?
     `
-    return await this.db.run(sql, [
-      setup.role,
-      setup.daoName
-    ])
+    return await this.db.run(sql, [setup.role, setup.daoName, setup.guildId])
   }
 
   async getSetup (): Promise<Setup> {
@@ -92,7 +88,8 @@ export class SetupRepository {
       FROM setup
     `
     // FIXME: handle undefined
-    return (await this.db.all<Setup>(sql)) ? (await this.db.all<Setup>(sql))[0] : { role: '', daoName: ''}
+    const result = await this.db.all<Setup>(sql)
+    return result?.[0]
   }
 }
 

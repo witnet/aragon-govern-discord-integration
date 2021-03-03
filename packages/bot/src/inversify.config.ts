@@ -7,7 +7,7 @@ import { MessageHandler } from './services/messageHandler'
 import { CommandFinder } from './services/commandFinder'
 import { EmbedMessage } from './services/embedMessage'
 import { SubgraphClient } from './services/subgraph'
-import { ProposalRepository, Database } from './database'
+import { ProposalRepository, Database, SetupRepository } from './database'
 
 let container = new Container()
 
@@ -40,6 +40,11 @@ container
 container
   .bind<ProposalRepository>(TYPES.ProposalRepository)
   .to(ProposalRepository)
+  .inSingletonScope()
+
+container
+  .bind<SetupRepository>(TYPES.SetupRepository)
+  .to(SetupRepository)
   .inSingletonScope()
 
 container
