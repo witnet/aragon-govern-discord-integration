@@ -17,6 +17,11 @@ export interface DaoDirectory {
   [guildId: string]: RegistryEntry
 }
 
+export type Setup = {
+  role: string
+  daoName: string
+}
+
 // Maps guild IDs to DAOs
 export type EmbedMessageParams = {
   title?: string

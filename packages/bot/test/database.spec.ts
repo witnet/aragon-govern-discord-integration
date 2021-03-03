@@ -1,6 +1,6 @@
 import 'reflect-metadata'
 
-import { Database, ProposalRepository } from '../src/database'
+import { Database, ProposalRepository, SetupRepository } from '../src/database'
 
 async function clearDatabase () {
   const db = new Database('./bot.db')
@@ -155,6 +155,110 @@ describe('database', () => {
   })
 })
 
+describe('SetupRepository', () => {
+  afterAll(() => {
+    return clearDatabase()
+  })
+
+  it('should allow create table', async () => {
+    const db = new Database('./bot.db')
+
+    const sql = `
+      CREATE TABLE IF NOT EXISTS setup (
+        role TEXT,
+        daoName TEXT
+      )
+    `
+    const result = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        resolve(db.run(sql))
+      }, 1000)
+    })
+
+    expect(result).toStrictEqual({ id: 0 })
+  })
+
+  it('should allow insert rows', async () => {
+    const db = new Database('./bot.db')
+
+    const createTableSql = `
+      CREATE TABLE IF NOT EXISTS setup (
+        role TEXT,
+        daoName TEXT
+      )
+    `
+
+    const insertSql = `
+        INSERT INTO setup (role, daoName)
+        VALUES (?, ?) 
+    `
+
+    const result = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        const role = 'admin'
+        const daoName = 'bitconnect'
+        await db.run(createTableSql)
+        const a = await db.run(insertSql, [
+          role,
+          daoName
+        ])
+        resolve(a)
+      }, 1000)
+    })
+
+    expect(result).toStrictEqual({ id: 1 })
+  })
+
+  it('all method should return stored elements', async () => {
+    const db = new Database('./bot.db')
+    const role = 'admin'
+    const daoName = 'bitconnect'
+    const result = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        const sql = `SELECT * FROM setup`
+        const a = await db.all(sql)
+        resolve(a)
+      }, 1000)
+    })
+
+    const row = {
+      role,
+      daoName
+    }
+    const expected = [row]
+
+    expect(result).toEqual(expected)
+  })
+
+  it('should update elements', async () => {
+    const db = new Database('./bot.db')
+    const role = '@everybody'
+    const daoName = 'bitconnect'
+    const result = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        const updateSql = `
+          UPDATE setup
+          SET 
+            role=?,
+            daoName=?
+        `
+        const sql = `SELECT * FROM setup`
+        await db.all(updateSql, [role, daoName])
+        const a = await db.all(sql)
+        resolve(a)
+      }, 1000)
+    })
+
+    const row = {
+      role,
+      daoName
+    }
+    const expected = [row]
+
+    expect(result).toEqual(expected)
+  })
+})
+
 describe('ProposalRepository', () => {
   afterAll(() => {
     return clearDatabase()
@@ -236,7 +340,6 @@ describe('ProposalRepository', () => {
     const proposalRepository = new ProposalRepository(database)
 
     proposalRepository.getActives()
-
     const sql = `
       SELECT *
       FROM proposals
