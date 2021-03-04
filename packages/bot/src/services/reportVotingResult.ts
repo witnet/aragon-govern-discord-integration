@@ -18,7 +18,6 @@ export async function reportVotingResult (
       '0x0000000000000000000000000000000000000000000000000000000000000000',
       `0x${drTxHash}`
     )
-
   } else {
     return null
   }
