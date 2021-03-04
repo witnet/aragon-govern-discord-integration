@@ -11,7 +11,7 @@ function urlFactory (
 // call library to create a data request
 export function createDataRequest (channelId: string, messageId: string) {
   // TODO: channelId and messageId are assumed to be valid URL parameters
-  const baseUrl = 'http://docker.witnet.io'
+  const baseUrl = 'http://localhost:3000'
 
   // Use this JSON as a template
   // Use the following Rust code to generate the script:

@@ -4,7 +4,7 @@ import {
   Collection,
   Message,
   MessageReaction,
-  TextChannel
+  TextChannel,
 } from 'discord.js'
 import { inject, injectable } from 'inversify'
 import {
@@ -13,7 +13,8 @@ import {
   PositiveReaction,
   NegativeReaction,
   Reaction,
-  Proposal
+  Proposal,
+  ReactionEvent
 } from './types'
 
 import { RegistryEntry } from './services/subgraph/types'
@@ -23,6 +24,7 @@ import { ProposalRepository, SetupRepository } from './database'
 import { scheduleDataRequest } from './services/scheduleDataRequest'
 import { SubgraphClient } from './services/subgraph'
 import { EmbedMessage } from './services/embedMessage'
+import { ReactionHandler } from './services/reactionHandler'
 import { longSetTimeout } from './utils/longSetTimeout'
 
 const defaultPositiveReactionList: Array<PositiveReaction> = [Reaction.ThumbsUp]
@@ -40,7 +42,7 @@ export class Bot {
   private setupRepository: SetupRepository
   private subgraphClient: SubgraphClient
   private embedMessage: EmbedMessage
-
+  private reactionHandler: ReactionHandler
   private loggedIn: string | undefined
 
   constructor (
@@ -50,6 +52,7 @@ export class Bot {
     @inject(TYPES.ProposalRepository) proposalRepository: ProposalRepository,
     @inject(TYPES.SetupRepository) setupRepository: SetupRepository,
     @inject(TYPES.SubgraphClient) subgraphClient: SubgraphClient,
+    @inject(TYPES.ReactionHandler) reactionHandler: ReactionHandler,
     @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage
   ) {
     this.client = client
@@ -59,6 +62,7 @@ export class Bot {
     this.setupRepository = setupRepository
     this.subgraphClient = subgraphClient
     this.embedMessage = embedMessage
+    this.reactionHandler = reactionHandler
   }
 
   private async login (): Promise<string> {
@@ -79,19 +83,16 @@ export class Bot {
     this.client.on('message', (message: Message) => {
       this.messageHandler.handle(message)
     })
+    // const addList:{[key: string]: [{user: User, reaction: MessageReaction}]} = {}
+    // const removeList:{[key: string]: [{user: User, reaction: MessageReaction}]} = {}
 
     this.client.on('messageReactionAdd', async (reaction, user) => {
-      let messageId = reaction.message.id
-      this.proposalRepository
-        .getActives()
-        .then(async (proposals: Array<Proposal>) => {
-          const isActiveProposal = proposals.find(proposal => {
-            return proposal.messageId === messageId
-          })
-          if (!isActiveProposal) {
-            await reaction.users.remove(user.id)
-          }
-        })
+      // TODO: reactionHandle and send message
+      this.reactionHandler.handle(reaction, user, ReactionEvent.Add)
+    })
+
+    this.client.on('messageReactionRemove', async (reaction, user) => {
+      this.reactionHandler.handle(reaction, user, ReactionEvent.Remove)
     })
 
     return this.login()

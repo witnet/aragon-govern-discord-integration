@@ -42,6 +42,17 @@ export class Database {
       })
     })
   }
+
+  get<T> (sql: string, params: Array<any> = []): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.db.get(sql, params, function (err, row) {
+        if (err) {
+          reject(err)
+        }
+        resolve(row)
+      })
+    })
+  }
 }
 
 @injectable()
@@ -141,5 +152,15 @@ export class ProposalRepository {
     `
 
     return await this.db.all<Proposal>(sql, [Date.now()])
+  }
+
+  async getActive (id: string): Promise<Proposal> {
+    const sql = `
+      SELECT *
+      FROM proposals
+      WHERE (deadline > ?) AND messageId = ?
+    `
+
+    return await this.db.get<Proposal>(sql, [Date.now(), id])
   }
 }

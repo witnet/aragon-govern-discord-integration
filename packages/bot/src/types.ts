@@ -10,7 +10,8 @@ export const TYPES = {
   ProposalRepository: Symbol('ProposalRepository'),
   SetupRepository: Symbol('SetupRepository'),
   SubgraphClient: Symbol('SubgraphClient'),
-  EmbedMessage: Symbol('EmbedMessage')
+  EmbedMessage: Symbol('EmbedMessage'),
+  ReactionHandler: Symbol('ReactionHandler')
 }
 
 // Maps guild IDs to DAOs
@@ -55,6 +56,11 @@ export enum Command {
 export type ReactionCount = {
   negative: number
   positive: number
+}
+
+export enum ReactionEvent {
+  Add = 'messageReactionAdd',
+  Remove = 'messageReactionRemove'
 }
 
 export enum Reaction {
