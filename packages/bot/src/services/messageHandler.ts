@@ -172,6 +172,14 @@ export class MessageHandler {
           description: 'Please try again with a future date and time.'
         })
       )
+      // currentTimestamp + 4 hours
+    } else if (proposalDeadlineTimestamp < Date.now() + 4 * 3600 * 1000) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: The proposal should be available to react for at least 4 hours`,
+          description: 'Please try again with a future date and time.'
+        })
+      )
     } else {
       return message.channel.send(
         '@everyone',
