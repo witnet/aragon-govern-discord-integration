@@ -94,7 +94,7 @@ export class MessageHandler {
     if (!dao) {
       return message.reply(
         this.embedMessage.warning({
-          title: `:warning: Sorry, this DAO isn't connected yet to any DAO.`,
+          title: `:warning: Sorry, this Discord server isn't connected yet to any DAO.`,
           description:
             `Please connect it to a DAO using the \`!setup\` command like this:` +
             `\n\`!setup theNameOfYourDao\``
