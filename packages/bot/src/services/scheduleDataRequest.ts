@@ -6,10 +6,13 @@ import { createDataRequest } from './createDataRequest'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
 import { RegistryEntry } from './subgraph/types'
-import { EtherscanUrl, Url, Reaction } from '../types'
+import { EtherscanUrl, Url } from '../types'
 import { EmbedMessage } from './embedMessage'
 import { countReactions } from './countReactions'
-import { defaultPositiveReactions, defaultNegativeReactions } from '../constants'
+import {
+  defaultPositiveReactions,
+  defaultNegativeReactions
+} from '../constants'
 
 const etherscanUrl: Url = {
   development: EtherscanUrl.development,
@@ -17,26 +20,27 @@ const etherscanUrl: Url = {
 }
 
 export function scheduleDataRequest (embedMessage: EmbedMessage) {
-  return (
+  return async (
     channelId: string,
     messageId: string,
     message: Message,
     dao: RegistryEntry,
     proposalDescription: string
   ) => {
-    // TODO COUNT REACTIONS
     const reactions = message.reactions.cache
     const votes = {
       positive: countReactions(defaultPositiveReactions, reactions),
       negative: countReactions(defaultNegativeReactions, reactions)
     }
-    message.channel.send(
+    const resultMessage = await message.channel.send(
       '@everyone',
-      embedMessage.info({
+      embedMessage.result({
         title: `:stopwatch: The time for voting the proposal: ***${proposalDescription}*** is over!`,
-        description: `The result is being send to the data request: 
-          ${Reaction.ThumbsUp}: ${votes.positive}
-          ${Reaction.ThumbsDown}: ${votes.negative}`,
+        description: `Creating Witnet data request...`,
+        result: {
+          positive: votes.positive,
+          negative: votes.negative
+        },
         footerMessage: `Proposal ${proposalDescription}`,
         authorUrl: message.author.displayAvatarURL()
       })
@@ -44,7 +48,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
     console.log(
       `Creating Witnet data request for channelId ${channelId} and messageId ${messageId}`
     )
-    const request = createDataRequest(channelId, messageId)
+    const request = createDataRequest(channelId, resultMessage.id)
     console.log('Created Witnet data request:', request)
 
     sendRequestToWitnetNode(

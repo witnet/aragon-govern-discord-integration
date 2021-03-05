@@ -1,6 +1,6 @@
 import { Message, MessageReaction, PartialUser, User } from 'discord.js'
 import { inject, injectable } from 'inversify'
-import { TYPES, ReactionEvent } from '../types'
+import { TYPES, ReactionEvent, Reaction } from '../types'
 import { ProposalRepository } from '../database'
 import { EmbedMessage } from './embedMessage'
 
@@ -17,12 +17,17 @@ export class ReactionHandler {
     this.proposalRepository = proposalRepository
   }
 
-  async handle (reaction: MessageReaction, user: User | PartialUser, reactionEvent: ReactionEvent): Promise<Message | Array<Message> | undefined> {
-    const activeProposal = await this.proposalRepository.getActive(reaction.message.id)
-    console.log(activeProposal)
-    if (activeProposal) {
+  async handle (
+    reaction: MessageReaction,
+    user: User | PartialUser,
+    reactionEvent: ReactionEvent
+  ): Promise<Message | Array<Message> | undefined> {
+    const activeProposal = await this.proposalRepository.getActive(
+      reaction.message.id
+    )
+    const isVotingReaction = (reaction.emoji.name === Reaction.ThumbsUp) || (reaction.emoji.name === Reaction.ThumbsDown)
+    if (activeProposal && isVotingReaction) {
       if (reactionEvent === ReactionEvent.Add) {
-        //TODO: add proposalDescription
         return reaction.message.reply(
           this.embedMessage.info({
             title: `User @${user.username} has reacted with ${reaction.emoji}`,
@@ -32,7 +37,6 @@ export class ReactionHandler {
         )
       }
       if (reactionEvent === ReactionEvent.Remove) {
-        //TODO: add proposalDescription
         return reaction.message.reply(
           this.embedMessage.info({
             title: `User @${user.username} has removed their reaction: ${reaction.emoji}`,
@@ -41,9 +45,8 @@ export class ReactionHandler {
           })
         )
       }
-      return 
+      return
     } else {
-      // TODO: send warn message
       return
     }
   }

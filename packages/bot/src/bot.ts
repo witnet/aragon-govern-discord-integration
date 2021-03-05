@@ -1,21 +1,6 @@
-import {
-  Channel,
-  Client,
-  Collection,
-  Message,
-  MessageReaction,
-  TextChannel,
-} from 'discord.js'
+import { Channel, Client, Message, TextChannel } from 'discord.js'
 import { inject, injectable } from 'inversify'
-import {
-  TYPES,
-  ReactionCount,
-  PositiveReaction,
-  NegativeReaction,
-  Reaction,
-  Proposal,
-  ReactionEvent
-} from './types'
+import { TYPES, ReactionCount, Proposal, ReactionEvent } from './types'
 
 import { RegistryEntry } from './services/subgraph/types'
 
@@ -26,11 +11,6 @@ import { SubgraphClient } from './services/subgraph'
 import { EmbedMessage } from './services/embedMessage'
 import { ReactionHandler } from './services/reactionHandler'
 import { longSetTimeout } from './utils/longSetTimeout'
-
-const defaultPositiveReactionList: Array<PositiveReaction> = [Reaction.ThumbsUp]
-const defaultNegativeReactionList: Array<NegativeReaction> = [
-  Reaction.ThumbsDown
-]
 
 // Bot logic
 @injectable()
@@ -83,11 +63,8 @@ export class Bot {
     this.client.on('message', (message: Message) => {
       this.messageHandler.handle(message)
     })
-    // const addList:{[key: string]: [{user: User, reaction: MessageReaction}]} = {}
-    // const removeList:{[key: string]: [{user: User, reaction: MessageReaction}]} = {}
 
     this.client.on('messageReactionAdd', async (reaction, user) => {
-      // TODO: reactionHandle and send message
       this.reactionHandler.handle(reaction, user, ReactionEvent.Add)
     })
 
@@ -130,9 +107,7 @@ export class Bot {
 
   public async fetchReactions (
     id: string,
-    channelId: string,
-    positiveReactionList: Array<PositiveReaction> = defaultPositiveReactionList,
-    negativeReactionList: Array<NegativeReaction> = defaultNegativeReactionList
+    channelId: string
   ): Promise<ReactionCount> {
     await this.login()
 
@@ -142,29 +117,18 @@ export class Bot {
     if (channel && channel.type === 'text') {
       const textChannel: TextChannel = channel as TextChannel
       const message = await textChannel.messages.fetch(id)
-      const reactions = message.reactions.cache
-
+      console.log(message.embeds[0].fields[0].value)
+      //TODO: improve parse votes when the final structure is implemented
       const votes = {
-        positive: countReactions(positiveReactionList, reactions),
-        negative: countReactions(negativeReactionList, reactions)
+        positive: Number(message.embeds[0].fields[0].value) || 0,
+        negative: Number(message.embeds[0].fields[1].value) || 0
       }
-
       console.log('Voting result:', votes)
-
       return Promise.resolve(votes)
     } else {
       return Promise.reject("Channel ID doesn't correspond to a ChannelText")
     }
   }
-}
-
-function countReactions (
-  emojiList: Array<string>,
-  reactions: Collection<string, MessageReaction>
-) {
-  return emojiList
-    .map((emoji: string) => reactions.get(emoji)?.count || 0)
-    .reduce((a: number, b: number) => a + b)
 }
 
 function hasProposalExpired (proposal: Proposal) {

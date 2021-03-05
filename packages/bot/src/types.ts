@@ -35,6 +35,12 @@ export type EmbedMessageParams = {
   footerMessage?: string
   daoName?: string
   role?: string
+  result?: Result
+}
+
+export type Result = {
+  positive: number
+  negative: number
 }
 
 export type RequestMessage = {

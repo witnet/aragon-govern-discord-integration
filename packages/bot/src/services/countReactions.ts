@@ -1,4 +1,4 @@
-import { Collection, MessageReaction } from "discord.js";
+import { Collection, MessageReaction } from 'discord.js'
 
 export function countReactions (
   emojiList: Array<string>,

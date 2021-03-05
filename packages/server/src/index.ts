@@ -15,10 +15,10 @@ app.get('/', async (req: Request, res: Response) => {
   } else {
     let errorMessage = 'The following parameters are mandatory: '
     if (!messageId) {
-      errorMessage += 'message_id '
+      errorMessage += '\n- message_id'
     }
     if (!channelId) {
-      errorMessage += 'channel_id'
+      errorMessage += '\n- channel_id'
     }
     return res.status(400).send(errorMessage)
   }

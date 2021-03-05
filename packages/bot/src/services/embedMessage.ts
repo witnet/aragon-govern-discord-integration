@@ -10,7 +10,7 @@ export class EmbedMessage {
     footerMessage,
     authorUrl
   }: EmbedMessageParams): MessageEmbed {
-    let validationWarning = new MessageEmbed()
+    const validationWarning = new MessageEmbed()
       .setColor('#d09625')
       .setTitle(title)
     if (description) {
@@ -27,7 +27,7 @@ export class EmbedMessage {
     footerMessage,
     authorUrl
   }: EmbedMessageParams): MessageEmbed {
-    let errorMessage = new MessageEmbed().setColor('#b9182f').setTitle(title)
+    const errorMessage = new MessageEmbed().setColor('#b9182f').setTitle(title)
     if (footerMessage) {
       errorMessage.setFooter(footerMessage, authorUrl)
     }
@@ -48,6 +48,27 @@ export class EmbedMessage {
       infoMessage.setFooter(footerMessage, authorUrl)
     }
     return infoMessage
+  }
+
+  result ({
+    title,
+    description,
+    footerMessage,
+    authorUrl,
+    result
+  }: EmbedMessageParams): MessageEmbed {
+    const resultMessage = new MessageEmbed()
+      .setColor('#0099ff')
+      .setTitle(title)
+      .setDescription(description)
+      .setThumbnail('attachment://aragon.png')
+      .addFields(
+        { name: ':thumbsup::', value: result?.positive, inline: true },
+        { name: ':thumbsdown::', value: result?.negative, inline: true }
+      )
+      .setTimestamp()
+      .setFooter(footerMessage, authorUrl)
+    return resultMessage
   }
 
   proposal ({
