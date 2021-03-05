@@ -1,4 +1,4 @@
-import { RegistryEntry } from './services/subgraph/types'
+import { RegistryEntry, } from './services/subgraph/types'
 
 export const TYPES = {
   Bot: Symbol('Bot'),

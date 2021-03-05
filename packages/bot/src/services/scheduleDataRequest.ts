@@ -6,8 +6,10 @@ import { createDataRequest } from './createDataRequest'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
 import { RegistryEntry } from './subgraph/types'
-import { EtherscanUrl, Url } from '../types'
+import { EtherscanUrl, Url, Reaction } from '../types'
 import { EmbedMessage } from './embedMessage'
+import { countReactions } from './countReactions'
+import { defaultPositiveReactions, defaultNegativeReactions } from '../constants'
 
 const etherscanUrl: Url = {
   development: EtherscanUrl.development,
@@ -22,11 +24,19 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
     dao: RegistryEntry,
     proposalDescription: string
   ) => {
+    // TODO COUNT REACTIONS
+    const reactions = message.reactions.cache
+    const votes = {
+      positive: countReactions(defaultPositiveReactions, reactions),
+      negative: countReactions(defaultNegativeReactions, reactions)
+    }
     message.channel.send(
       '@everyone',
       embedMessage.info({
         title: `:stopwatch: The time for voting the proposal: ***${proposalDescription}*** is over!`,
-        description: `Creating Witnet data request...`,
+        description: `The result is being send to the data request: 
+          ${Reaction.ThumbsUp}: ${votes.positive}
+          ${Reaction.ThumbsDown}: ${votes.negative}`,
         footerMessage: `Proposal ${proposalDescription}`,
         authorUrl: message.author.displayAvatarURL()
       })
