@@ -4,8 +4,8 @@ import { Message } from 'discord.js'
 export function parseSetupMessage (message: Message) {
   const chunks = message.content.replace('  ', ' ').split(' ')
   const guildId = message.guild?.id
-  const daoName = chunks[2]
-  const roleAllowed = chunks[1]
+  const daoName = chunks[1]
+  const roleAllowed = chunks.slice(2, chunks.length).join(' ')
   const requester = message.member
   return {
     daoName,

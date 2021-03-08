@@ -1,4 +1,4 @@
-import Discord, { MessageEmbed } from 'discord.js'
+import { MessageEmbed } from 'discord.js'
 import { injectable } from 'inversify'
 import { EmbedMessageParams } from '../types'
 
@@ -10,7 +10,7 @@ export class EmbedMessage {
     footerMessage,
     authorUrl
   }: EmbedMessageParams): MessageEmbed {
-    let validationWarning = new Discord.MessageEmbed()
+    let validationWarning = new MessageEmbed()
       .setColor('#d09625')
       .setTitle(title)
     if (description) {
@@ -27,9 +27,7 @@ export class EmbedMessage {
     footerMessage,
     authorUrl
   }: EmbedMessageParams): MessageEmbed {
-    let errorMessage = new Discord.MessageEmbed()
-      .setColor('#b9182f')
-      .setTitle(title)
+    let errorMessage = new MessageEmbed().setColor('#b9182f').setTitle(title)
     if (footerMessage) {
       errorMessage.setFooter(footerMessage, authorUrl)
     }
@@ -42,9 +40,7 @@ export class EmbedMessage {
     footerMessage,
     authorUrl
   }: EmbedMessageParams): MessageEmbed {
-    const infoMessage = new Discord.MessageEmbed()
-      .setColor('#0099ff')
-      .setTitle(title)
+    const infoMessage = new MessageEmbed().setColor('#0099ff').setTitle(title)
     if (description) {
       infoMessage.setDescription(description)
     }
@@ -60,7 +56,7 @@ export class EmbedMessage {
     authorUrl,
     footerMessage
   }: EmbedMessageParams) {
-    const proposalEmbedMessage = new Discord.MessageEmbed()
+    const proposalEmbedMessage = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle(`New proposal ***${proposalDescription}***`)
       .setDescription(
@@ -89,7 +85,7 @@ export class EmbedMessage {
   }
 
   dao ({ daoName, role }: EmbedMessageParams) {
-    const daoMessage = new Discord.MessageEmbed()
+    const daoMessage = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Congrats to you and your fellow Discord users!')
       .setDescription(

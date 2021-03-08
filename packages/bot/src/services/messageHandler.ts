@@ -53,9 +53,7 @@ export class MessageHandler {
   async handle (
     message: Message
   ): Promise<Message | Array<Message> | undefined> {
-    if (!this.initialSetup) {
-      await this.loadSetup()
-    }
+    await this.loadSetup()
     if (!message.author.bot) {
       if (this.commandFinder.isSetupMessage(message.content)) {
         return this.setup(message)
@@ -109,7 +107,7 @@ export class MessageHandler {
           title: `:warning: Sorry, you need a setup to create proposals`,
           description:
             `Please create a setup as following: \`!setup\` command like this:` +
-            `\n\`!setup userRole theNameOfYourDao\``
+            `\n\`!setup theNameOfYourDao userRole\``
         })
       )
     }
@@ -122,9 +120,11 @@ export class MessageHandler {
       )
     }
 
-    const isAllowed = message.member?.roles.cache.some(
-      role => role.name === this.initialSetup?.role
-    )
+    const isAllowed = message.member?.roles.cache.some(role => {
+      console.log('role name', role.name)
+      return role.name === this.initialSetup?.role
+    })
+    console.log('role initial', this.initialSetup?.role)
 
     if (this.initialSetup.role && !isAllowed) {
       return message.reply(
@@ -151,7 +151,7 @@ export class MessageHandler {
           title: `:warning: Sorry, this Discord server isn't connected yet to any DAO.`,
           description:
             `Please connect it to a DAO using the \`!setup\` command like this:` +
-            `\n\`!setup userRole theNameOfYourDao\``
+            `\n\`!setup theNameOfYourDao userRole\``
         })
       )
     }
@@ -250,6 +250,7 @@ export class MessageHandler {
   private async saveSetup (setup: Setup) {
     if (this.initialSetup) {
       try {
+        console.log('setup update', setup)
         this.setupRepository.updateOnly(setup)
       } catch (error) {
         // TODO. handle error
@@ -257,6 +258,7 @@ export class MessageHandler {
       }
     } else {
       try {
+        console.log('setup insert', setup)
         this.setupRepository.insert(setup)
       } catch (error) {
         // TODO. handle error
@@ -272,12 +274,18 @@ export class MessageHandler {
     console.log(
       `Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`
     )
+    const roles = message.guild?.roles.cache.map(role => role.name)
+    const roleOptions = `Select one of the following roles: \`${roles?.join(
+      '`, `'
+    )}\`. Make sure you are following this format \`!setup theNameOfYourDao userRole\``
     // Make sure a DAO name has been provided
     if (!daoName) {
       return message.reply(
         this.embedMessage.warning({
           title: 'The setup command should follow this format:',
-          description: `\`!setup userRole theNameOfYourDao\``
+          description: `\`!setup theNameOfYourDao userRole\`\n Only users with the selected role will be able to create proposals. The roles available are: \`${roles?.join(
+            '`, `'
+          )}\``
         })
       )
     }
@@ -311,10 +319,6 @@ export class MessageHandler {
       )
     }
 
-    const roles = message.guild?.roles.cache.map(role => role.name)
-    const roleOptions = `Select one of the following roles: \`${roles?.join(
-      '`, `'
-    )}\`. Make sure you are following this format \`!setup userRole theNameOfYourDao\``
     if (!roleAllowed) {
       return message.reply(
         this.embedMessage.warning({

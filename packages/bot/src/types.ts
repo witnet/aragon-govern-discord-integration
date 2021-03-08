@@ -17,7 +17,7 @@ export const TYPES = {
 export interface DaoDirectory {
   [guildId: string]: RegistryEntry
 }
-// TODO: remove null
+
 export type Setup = {
   role: string
   daoName: string
