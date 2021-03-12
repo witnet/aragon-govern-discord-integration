@@ -19,6 +19,12 @@ export interface DaoDirectory {
   [guildId: string]: RegistryEntry
 }
 
+export type ProposalAction = {
+  to: string,
+  value: string,
+  data: string
+}
+
 export type Setup = {
   role: string
   daoName: string
@@ -50,6 +56,7 @@ export type RequestMessage = {
   proposalDeadlineTimestamp: number
   proposalDeadlineDate: string
   proposalDescription: string
+  proposalAction: ProposalAction
 }
 
 export enum Command {
@@ -94,4 +101,5 @@ export type Proposal = {
   createdAt: number
   deadline: number
   daoName: string
+  action: ProposalAction
 }

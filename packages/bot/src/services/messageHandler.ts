@@ -92,7 +92,8 @@ export class MessageHandler {
       proposalDeadlineDate,
       proposalDeadlineTimestamp,
       messageId,
-      proposalDescription
+      proposalDescription,
+      proposalAction
     } = this.requestMessage
     const currentTime = Date.now()
 
@@ -160,7 +161,23 @@ export class MessageHandler {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Invalid format`,
-          description: `The proposal should follow this format:\n'\`!proposal [yyyy MM dd HH:mm:ss] [message]'\``
+          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<value> data?:<data>'\``
+        })
+      )
+    }
+
+    if (!proposalAction.to) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: You need to set an address for the proposal action`,
+          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<value> data?:<data>'\``
+        })
+      )
+    } else if (!proposalAction.value) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: You need to set a value for the proposal action`,
+          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<value> data?:<data>'\``
         })
       )
     }
@@ -200,7 +217,8 @@ export class MessageHandler {
         channelId,
         guildId,
         proposalDeadlineTimestamp,
-        proposalDescription
+        proposalDescription,
+        proposalAction
       } = this.requestMessage
       const currentTime = Date.now()
       const messageId = message.id
@@ -225,7 +243,8 @@ export class MessageHandler {
         description: proposalDescription,
         createdAt: currentTime,
         deadline: proposalDeadlineTimestamp,
-        daoName: dao.name
+        daoName: dao.name,
+        action: proposalAction
       })
 
       longSetTimeout(() => {

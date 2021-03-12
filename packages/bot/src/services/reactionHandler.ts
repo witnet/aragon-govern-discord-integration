@@ -25,7 +25,9 @@ export class ReactionHandler {
     const activeProposal = await this.proposalRepository.getActive(
       reaction.message.id
     )
-    const isVotingReaction = (reaction.emoji.name === Reaction.ThumbsUp) || (reaction.emoji.name === Reaction.ThumbsDown)
+    const isVotingReaction =
+      reaction.emoji.name === Reaction.ThumbsUp ||
+      reaction.emoji.name === Reaction.ThumbsDown
     if (activeProposal && isVotingReaction) {
       if (reactionEvent === ReactionEvent.Add) {
         return reaction.message.reply(
