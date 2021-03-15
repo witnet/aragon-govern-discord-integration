@@ -7,7 +7,7 @@ import { SubgraphClient } from './subgraph' ;
 // TODO: move configuration variables to config file
 const PROVIDER_URL = process.env.WEB3_PROVIDER || "http://localhost:8544"
 const GETH_ADDRESS = process.env.WEB3_ACCOUNT || "0xa550Cf4F03Bd2417Cf83c8a652703cdC33c016ee"
-const GAS_LIMIT = 7385875
+const GAS_LIMIT = 4000000
 
 export class Web3Client {
 
@@ -74,7 +74,7 @@ export class Web3Client {
     })
       .send({ from: GETH_ADDRESS, gas: GAS_LIMIT })
       .then(function (data: any) {
-        console.log("Execute transaction succsessfully sent:", data.transactionHash)
+        console.log("Execute transaction successfully sent:", data.transactionHash)
         return data.transactionHash
       })
       .catch(function (error: any) {
