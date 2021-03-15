@@ -96,7 +96,8 @@ export class Bot {
                 proposal.messageId,
                 message,
                 dao,
-                proposal.description
+                proposal.description,
+                proposal.action
               )
             }
           }, proposal.deadline - Date.now())

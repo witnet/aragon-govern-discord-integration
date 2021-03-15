@@ -253,7 +253,8 @@ export class MessageHandler {
           messageId,
           message,
           dao,
-          proposalDescription
+          proposalDescription,
+          proposalAction
         )
 
         this.requestMessage = null

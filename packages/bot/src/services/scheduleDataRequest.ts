@@ -6,7 +6,7 @@ import { createDataRequest } from './createDataRequest'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
 import { RegistryEntry } from './subgraph/types'
-import { EtherscanUrl, Url } from '../types'
+import { EtherscanUrl, ProposalAction, Url } from '../types'
 import { EmbedMessage } from './embedMessage'
 import { countReactions } from './countReactions'
 import {
@@ -25,7 +25,8 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
     messageId: string,
     message: Message,
     dao: RegistryEntry,
-    proposalDescription: string
+    proposalDescription: string,
+    proposalAction: ProposalAction
   ) => {
     const reactions = message.reactions.cache
     const votes = {
@@ -62,7 +63,8 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
             const report = await reportVotingResult(
               dao,
               drTxHash,
-              `${Math.round(Date.now() / 1000 + 60)}`
+              `${Math.round(Date.now() / 1000 + 60)}`,
+              proposalAction
             )
             if (report) {
               message.channel.send(
