@@ -33,6 +33,7 @@
     "@types/sqlite3": "^3.1.7",
     "@types/ws": "^7.4.0",
     "babel-plugin-transform-typescript-metadata": "^0.3.1",
+    "cbor": "^7.0.4",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "graphql": "^15.5.0",

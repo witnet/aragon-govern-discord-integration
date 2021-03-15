@@ -122,10 +122,8 @@ export class MessageHandler {
     }
 
     const isAllowed = message.member?.roles.cache.some(role => {
-      console.log('role name', role.name)
       return role.name === this.initialSetup?.role
     })
-    console.log('role initial', this.initialSetup?.role)
 
     if (this.initialSetup.role && !isAllowed) {
       return message.reply(
@@ -189,15 +187,7 @@ export class MessageHandler {
           description: 'Please try again with a future date and time.'
         })
       )
-      // currentTimestamp + 4 hours
-    } else if (proposalDeadlineTimestamp < Date.now() + 4 * 3600 * 1000) {
-      return message.reply(
-        this.embedMessage.warning({
-          title: `:warning: The proposal should be available to react for at least 4 hours`,
-          description: 'Please try again with a future date and time.'
-        })
-      )
-    } else {
+    }else {
       return message.channel.send(
         '@everyone',
         this.embedMessage.proposal({
@@ -278,16 +268,16 @@ export class MessageHandler {
   private async saveSetup (setup: Setup) {
     if (this.initialSetup) {
       try {
-        console.log('setup update', setup)
         this.setupRepository.updateOnly(setup)
+        console.log('Setup updated', setup)
       } catch (error) {
         // TODO. handle error
         console.log('Error saving setup', setup)
       }
     } else {
       try {
-        console.log('setup insert', setup)
         this.setupRepository.insert(setup)
+        console.log('Setup inserted', setup)
       } catch (error) {
         // TODO. handle error
         console.log('Error saving setup', setup)
