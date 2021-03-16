@@ -159,7 +159,7 @@ export class MessageHandler {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Invalid format`,
-          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<value> data?:<data>'\``
+          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<ETH> data?:<data>'\``
         })
       )
     }
@@ -168,14 +168,14 @@ export class MessageHandler {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: You need to set an address for the proposal action`,
-          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<value> data?:<data>'\``
+          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<ETH> data?:<data>'\``
         })
       )
     } else if (!proposalAction.value) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: You need to set a value for the proposal action`,
-          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<value> data?:<data>'\``
+          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<ETH> data?:<data>'\``
         })
       )
     }

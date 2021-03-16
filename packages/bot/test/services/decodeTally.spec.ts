@@ -1,4 +1,4 @@
-import { decodeTallyResult } from '../../src/services/decodeTally'
+import { decodeTallyResult } from '../../src/utils/decodeTally'
 
 describe('decodeTally', () => {
   it('returns error', async () => {

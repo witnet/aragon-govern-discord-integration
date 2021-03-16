@@ -30,9 +30,11 @@
   "dependencies": {
     "@babel/plugin-proposal-class-properties": "^7.12.1",
     "@babel/plugin-proposal-decorators": "^7.12.12",
+    "@types/big.js": "^6.0.2",
     "@types/sqlite3": "^3.1.7",
     "@types/ws": "^7.4.0",
     "babel-plugin-transform-typescript-metadata": "^0.3.1",
+    "big.js": "^6.0.3",
     "cbor": "^7.0.4",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",

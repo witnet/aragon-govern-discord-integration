@@ -9,7 +9,7 @@ import { RegistryEntry } from './subgraph/types'
 import { EtherscanUrl, ProposalAction, Url } from '../types'
 import { EmbedMessage } from './embedMessage'
 import { countReactions } from './countReactions'
-import { decodeTallyResult } from './decodeTally'
+import { decodeTallyResult } from '../utils/decodeTally'
 
 import {
   defaultPositiveReactions,
