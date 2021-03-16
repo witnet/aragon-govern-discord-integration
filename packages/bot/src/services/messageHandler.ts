@@ -9,6 +9,7 @@ import { EmbedMessage } from './embedMessage'
 import { ProposalRepository, SetupRepository } from '../database'
 import { scheduleDataRequest } from './scheduleDataRequest'
 import { longSetTimeout } from '../utils/longSetTimeout'
+import { defaultMinimumProposalDeadline } from '../constants'
 
 @injectable()
 export class MessageHandler {
@@ -180,6 +181,9 @@ export class MessageHandler {
       )
     }
 
+    const minimalProposalDeadline =
+      process.env.MINIMUM_PROPOSAL_DEADLINE || defaultMinimumProposalDeadline
+
     if (proposalDeadlineTimestamp <= currentTime) {
       return message.reply(
         this.embedMessage.warning({
@@ -188,7 +192,7 @@ export class MessageHandler {
         })
       )
       // currentTimestamp + 4 hours
-    } else if (proposalDeadlineTimestamp < Date.now() + 4 * 3600 * 1000) {
+    } else if (proposalDeadlineTimestamp < minimalProposalDeadline) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: The proposal should be available to react for at least 4 hours`,
