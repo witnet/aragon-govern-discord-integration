@@ -202,11 +202,7 @@ describe('setup database', () => {
         const daoName = 'bitconnect'
         const guildId = '1234'
         await db.run(createTableSql)
-        const a = await db.run(insertSql, [
-          role,
-          daoName,
-          guildId
-        ])
+        const a = await db.run(insertSql, [role, daoName, guildId])
         resolve(a)
       }, 1000)
     })
@@ -307,7 +303,7 @@ describe('SetupRepository', () => {
       guildId
     })
   })
-  it('update values in setup table', async() => {
+  it('update values in setup table', async () => {
     const database = new Database()
     const runMock = jest.fn()
     database.run = runMock
@@ -315,7 +311,7 @@ describe('SetupRepository', () => {
     const role = 'admin'
     const daoName = 'bitconnect'
     const guildId = '1234'
-    
+
     const setupRepository = new SetupRepository(database)
     await setupRepository.updateOnly({
       role,
@@ -330,11 +326,7 @@ describe('SetupRepository', () => {
         daoName=?,
         guildId=?
     `
-    expect(runMock).toHaveBeenNthCalledWith(1, sql, [
-      role,
-      daoName,
-      guildId
-    ])
+    expect(runMock).toHaveBeenNthCalledWith(1, sql, [role, daoName, guildId])
   })
   it('update setup values', () => {
     const database = new Database()

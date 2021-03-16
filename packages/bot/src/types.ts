@@ -1,4 +1,4 @@
-import { RegistryEntry, } from './services/subgraph/types'
+import { RegistryEntry } from './services/subgraph/types'
 
 export const TYPES = {
   Bot: Symbol('Bot'),
@@ -20,8 +20,8 @@ export interface DaoDirectory {
 }
 
 export type ProposalAction = {
-  to: string,
-  value: string,
+  to: string
+  value: string
   data: string
 }
 
@@ -83,11 +83,11 @@ export enum Reaction {
 
 export enum EtherscanUrl {
   development = 'rinkeby.etherscan.io',
-  production = 'etherscan.io',
+  production = 'etherscan.io'
 }
 
 export interface Url {
-  [key: string]: EtherscanUrl,
+  [key: string]: EtherscanUrl
 }
 
 export type PositiveReaction = Reaction.ThumbsUp

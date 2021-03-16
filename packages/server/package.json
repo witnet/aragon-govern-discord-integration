@@ -16,14 +16,14 @@
   },
   "dependencies": {
     "@adi/bot": "^0.0.1",
-    "@types/express": "^4.17.11",
-    "@types/node": "^14.14.22",
     "express": "^4.17.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-typescript": "^7.12.7",
+    "@types/express": "^4.17.11",
     "@types/jest": "^26.0.14",
+    "@types/node": "^14.14.22",
     "jest": "^26.5.3",
     "typescript": "^4.0.3"
   },

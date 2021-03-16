@@ -41,13 +41,13 @@ type Queued = {
 }
 
 type Queue = {
-    address: Address
-    config: Config
-    queued: Queued[]
+  address: Address
+  config: Config
+  queued: Queued[]
 }
 
 type Executor = {
-    address: Address
+  address: Address
 }
 
 export type RegistryEntry = {

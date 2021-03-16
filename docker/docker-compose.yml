@@ -1,16 +1,16 @@
-version: "2"
+version: '2'
 services:
   bot:
-    image: "aragon-discord"
-    command: "./packages/bot/dist/index.js --listen"
+    image: 'aragon-discord'
+    command: './packages/bot/dist/index.js --listen'
     environment:
-      DISCORD_TOKEN: "$DISCORD_BOT_TOKEN"
+      DISCORD_TOKEN: '$DISCORD_BOT_TOKEN'
     restart: always
   monitor:
-    image: "aragon-discord"
-    command: "./packages/server/dist/index.js"
+    image: 'aragon-discord'
+    command: './packages/server/dist/index.js'
     environment:
-      DISCORD_TOKEN: "$DISCORD_MONITOR_TOKEN"
+      DISCORD_TOKEN: '$DISCORD_MONITOR_TOKEN'
     ports:
-      - "10.1.2.4:3000:3000"
+      - '10.1.2.4:3000:3000'
     restart: always
