@@ -187,7 +187,15 @@ export class MessageHandler {
           description: 'Please try again with a future date and time.'
         })
       )
-    }else {
+      // currentTimestamp + 4 hours
+    } else if (proposalDeadlineTimestamp < Date.now() + 4 * 3600 * 1000) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: The proposal should be available to react for at least 4 hours`,
+          description: 'Please try again with a future date and time.'
+        })
+      )
+    } else {
       return message.channel.send(
         '@everyone',
         this.embedMessage.proposal({
@@ -269,7 +277,7 @@ export class MessageHandler {
     if (this.initialSetup) {
       try {
         this.setupRepository.updateOnly(setup)
-        console.log('Setup updated', setup)
+        console.log('[MessageHandler]: Setup updated', setup)
       } catch (error) {
         // TODO. handle error
         console.log('Error saving setup', setup)
@@ -277,7 +285,7 @@ export class MessageHandler {
     } else {
       try {
         this.setupRepository.insert(setup)
-        console.log('Setup inserted', setup)
+        console.log('[MessageHandler]: Setup inserted', setup)
       } catch (error) {
         // TODO. handle error
         console.log('Error saving setup', setup)

@@ -33,7 +33,9 @@ export function parseProposalMessage (message: Message): RequestMessage {
       // get action address from message
       to: message.content.match(toRegex)?.[0].split(':')[1] || '',
       // get action value from message
-      value: convertEthToWei(message.content.match(valueRegex)?.[0].split(':')[1] || '0'),
+      value: convertEthToWei(
+        message.content.match(valueRegex)?.[0].split(':')[1] || '0'
+      ),
       // get action data from message
       data: message.content.match(dataRegex)?.[0].split(':')[1] || '0x00'
     }
