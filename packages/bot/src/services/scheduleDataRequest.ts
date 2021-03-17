@@ -1,5 +1,5 @@
 import { Message } from 'discord.js'
-import { ENVIRONMENT } from '../config'
+import { ENVIRONMENT, DEFAULT_EXEC_TIME } from '../config'
 import { reportVotingResult } from './reportVotingResult'
 import { executeVotingResult } from './executeVotingResult'
 import { createDataRequest } from './createDataRequest'
@@ -75,10 +75,11 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
               )
             }
             if (decodedTally.positive > decodedTally.negative) {
+              const executionDelay =  Number(dao.queue.config.executionDelay)
               const report = await reportVotingResult(
                 dao,
                 drTxHash,
-                `${Math.round(Date.now() / 1000 + 60)}`,
+                `${Math.round(Date.now() / 1000 +  executionDelay + DEFAULT_EXEC_TIME)}`,
                 proposalAction
               )
               if (report) {
@@ -127,7 +128,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                     })
                   )
                 }
-              }, Number(dao.queue.config.executionDelay) * 1000 + 60000)
+              }, (executionDelay + DEFAULT_EXEC_TIME )* 1000)
             } else {
               return message.channel.send(
                 '@everyone',
