@@ -68,7 +68,8 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
               return message.channel.send(
                 '@everyone',
                 embedMessage.error({
-                  title: `There was an error executing the Witnet data request`,
+                  title: `:exclamation: There was an error executing the Witnet data request`,
+                  description: `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash}))`,
                   footerMessage: `Proposal ${proposalDescription}`,
                   authorUrl: message.author.displayAvatarURL()
                 })
@@ -133,8 +134,8 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
               return message.channel.send(
                 '@everyone',
                 embedMessage.info({
-                  title: `The disputed proposal has not a majority of positive votes`,
-                  description: `The action will not be executed`,
+                  title: `The disputed proposal did not receive a majority of positive votes`,
+                  description: `The action will not be executed. The ID of the Witnet data request ([${drTxHash}](https://witnet.network/search/${drTxHash}))`,
                   footerMessage: `Proposal ${proposalDescription}`,
                   authorUrl: message.author.displayAvatarURL()
                 })
