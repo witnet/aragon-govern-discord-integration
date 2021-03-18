@@ -19,6 +19,15 @@ export interface DaoDirectory {
   [guildId: string]: RegistryEntry
 }
 
+export interface UnitConversionExponents {
+  [origin: string]: number
+}
+
+export enum EthUnits {
+  eth = 'eth',
+  gwei = 'gwei'
+}
+
 export type ProposalAction = {
   to: string
   value: string

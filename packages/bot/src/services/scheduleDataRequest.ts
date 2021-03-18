@@ -69,18 +69,20 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                 '@everyone',
                 embedMessage.error({
                   title: `:exclamation: There was an error executing the Witnet data request`,
-                  description: `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash}))`,
+                  description: `The ID of the data request [${drTxHash}](https://witnet.network/search/${drTxHash})`,
                   footerMessage: `Proposal ${proposalDescription}`,
                   authorUrl: message.author.displayAvatarURL()
                 })
               )
             }
             if (decodedTally.positive > decodedTally.negative) {
-              const executionDelay =  Number(dao.queue.config.executionDelay)
+              const executionDelay = Number(dao.queue.config.executionDelay)
               const report = await reportVotingResult(
                 dao,
                 drTxHash,
-                `${Math.round(Date.now() / 1000 +  executionDelay + DEFAULT_EXEC_TIME)}`,
+                `${Math.round(
+                  Date.now() / 1000 + executionDelay + DEFAULT_EXEC_TIME
+                )}`,
                 proposalAction
               )
               if (report) {
@@ -123,19 +125,19 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                   message.channel.send(
                     '@everyone',
                     embedMessage.error({
-                      title: `There was an error executing the proposal`,
+                      title: `:warning: There was an error executing the proposal`,
                       footerMessage: `Proposal ${proposalDescription}`,
                       authorUrl: message.author.displayAvatarURL()
                     })
                   )
                 }
-              }, (executionDelay + DEFAULT_EXEC_TIME )* 1000)
+              }, (executionDelay + DEFAULT_EXEC_TIME) * 1000)
             } else {
               return message.channel.send(
                 '@everyone',
                 embedMessage.info({
                   title: `The disputed proposal did not receive a majority of positive votes`,
-                  description: `The action will not be executed. The ID of the Witnet data request ([${drTxHash}](https://witnet.network/search/${drTxHash}))`,
+                  description: `The action will not be executed. The ID of the Witnet data request [${drTxHash}](https://witnet.network/search/${drTxHash})`,
                   footerMessage: `Proposal ${proposalDescription}`,
                   authorUrl: message.author.displayAvatarURL()
                 })

@@ -1,6 +1,6 @@
 import { Message } from 'discord.js'
-import { RequestMessage } from '../types'
-import { convertEthToWei } from '../utils/convertEthToWei'
+import { RequestMessage, EthUnits } from '../types'
+import { convertToWei } from '../utils/convertToWei'
 
 // parse received proposal message
 export function parseProposalMessage (message: Message): RequestMessage {
@@ -27,15 +27,16 @@ export function parseProposalMessage (message: Message): RequestMessage {
     }
   } else {
     const toRegex = /\bto:\w+/
-    const valueRegex = /\bvalue:\w+/
+    const valueRegex = /\bvalue:\w+(\.\w)?/
     const dataRegex = /\bdata:\w+/
     const proposalAction = {
       // get action address from message
       to: message.content.match(toRegex)?.[0].split(':')[1] || '',
       // get action value from message
-      value: convertEthToWei(
-        message.content.match(valueRegex)?.[0].split(':')[1] || '0'
-      ),
+      value: convertToWei({
+        value: message.content.match(valueRegex)?.[0].split(':')[1] || '0',
+        origin: EthUnits.eth
+      }),
       // get action data from message
       data: message.content.match(dataRegex)?.[0].split(':')[1] || '0x00'
     }

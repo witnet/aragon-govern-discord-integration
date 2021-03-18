@@ -32,7 +32,7 @@ export class ReactionHandler {
       if (reactionEvent === ReactionEvent.Add) {
         return reaction.message.reply(
           this.embedMessage.info({
-            title: `User @${user.username} has reacted with ${reaction.emoji}`,
+            title: `@${user.username} has reacted with ${reaction.emoji}`,
             footerMessage: `proposal ${activeProposal.description}`,
             authorUrl: user.displayAvatarURL()
           })
@@ -41,7 +41,7 @@ export class ReactionHandler {
       if (reactionEvent === ReactionEvent.Remove) {
         return reaction.message.reply(
           this.embedMessage.info({
-            title: `User @${user.username} has removed their reaction: ${reaction.emoji}`,
+            title: `@${user.username} has removed their reaction: ${reaction.emoji}`,
             footerMessage: `proposal ${activeProposal.description}`,
             authorUrl: user.displayAvatarURL()
           })

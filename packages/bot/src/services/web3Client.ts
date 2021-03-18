@@ -1,9 +1,8 @@
 import Web3 from 'web3'
-
 import queueAbi from '../contracts/GovernQueue.json'
 import { Action, Payload, RegistryEntry } from './subgraph/types'
 import { SubgraphClient } from './subgraph'
-
+import { estimatedGasPrice } from './estimatedGasPrice'
 // TODO: move configuration variables to config file
 const PROVIDER_URL = process.env.WEB3_PROVIDER || 'http://localhost:8544'
 const GETH_ADDRESS =
@@ -50,12 +49,14 @@ export class Web3Client {
       allowFailuresMap,
       proof
     }
+    const gasPrice = await estimatedGasPrice()
+
     return queue.methods
       .schedule({
         config: dao.queue.config,
         payload
       })
-      .send({ from: GETH_ADDRESS, gas: GAS_LIMIT })
+      .send({ from: GETH_ADDRESS, gas: GAS_LIMIT, gasPrice })
       .then(function (data: { payload: Payload; transactionHash: string }) {
         console.log(
           'Schedule transaction successfully sent:',

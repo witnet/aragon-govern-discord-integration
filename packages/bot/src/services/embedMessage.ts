@@ -24,10 +24,14 @@ export class EmbedMessage {
 
   error ({
     title,
+    description,
     footerMessage,
     authorUrl
   }: EmbedMessageParams): MessageEmbed {
     const errorMessage = new MessageEmbed().setColor('#b9182f').setTitle(title)
+    if (description) {
+      errorMessage.setDescription(description)
+    }
     if (footerMessage) {
       errorMessage.setFooter(footerMessage, authorUrl)
     }
