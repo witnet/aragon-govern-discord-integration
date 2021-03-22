@@ -1,6 +1,6 @@
 import { Message } from 'discord.js'
 import { RequestMessage, EthUnits } from '../types'
-import { convertToWei } from '../utils/convertToWei'
+import { convertEthUnits } from '../utils/convertEthUnits'
 
 // parse received proposal message
 export function parseProposalMessage (message: Message): RequestMessage {
@@ -33,9 +33,9 @@ export function parseProposalMessage (message: Message): RequestMessage {
       // get action address from message
       to: message.content.match(toRegex)?.[0].split(':')[1] || '',
       // get action value from message
-      value: convertToWei({
+      value: convertEthUnits({
         value: message.content.match(valueRegex)?.[0].split(':')[1] || '0',
-        origin: EthUnits.eth
+        input: EthUnits.eth
       }),
       // get action data from message
       data: message.content.match(dataRegex)?.[0].split(':')[1] || '0x00'

@@ -1,15 +1,15 @@
 import axios from 'axios'
 import { EthUnits } from '../types'
-import convertToWei from '../utils/convertToWei'
+import convertEthUnits from '../utils/convertEthUnits'
 import { gasPriceEndpoint } from '../constants'
 
 export const estimatedGasPrice = (): Promise<string> => {
   const data = axios
     .get(gasPriceEndpoint)
     .then(response => {
-      return convertToWei({
+      return convertEthUnits({
         value: `${Number(response.data.fast) / 10}`,
-        origin: EthUnits.gwei
+        input: EthUnits.gwei
       })
     })
     .catch(err => {

@@ -3,13 +3,21 @@ import { inject, injectable } from 'inversify'
 import { parseProposalMessage } from './parseProposalMessage'
 import { parseSetupMessage } from './parseSetupMessage'
 import { CommandFinder } from './commandFinder'
-import { TYPES, RequestMessage, DaoDirectory, Proposal, Setup } from '../types'
+import {
+  TYPES,
+  RequestMessage,
+  DaoDirectory,
+  Proposal,
+  Setup,
+  EthUnits
+} from '../types'
 import { SubgraphClient } from './subgraph'
 import { EmbedMessage } from './embedMessage'
 import { ProposalRepository, SetupRepository } from '../database'
 import { scheduleDataRequest } from './scheduleDataRequest'
 import { longSetTimeout } from '../utils/longSetTimeout'
 import { defaultMinimumProposalDeadline } from '../constants'
+import { convertEthUnits } from '../utils/convertEthUnits'
 
 @injectable()
 export class MessageHandler {
@@ -130,7 +138,7 @@ export class MessageHandler {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Sorry, you are not allowed to create a proposal`,
-          description: `Only administrators can change permissions`
+          description: `Only administrators can change permissions.`
         })
       )
     }
@@ -204,6 +212,12 @@ export class MessageHandler {
         '@everyone',
         this.embedMessage.proposal({
           proposalDescription,
+          amount: convertEthUnits({
+            value: proposalAction.value,
+            input: EthUnits.wei,
+            output: EthUnits.eth
+          }),
+          address: proposalAction.to,
           proposalDeadlineDate,
           footerMessage: `@${message.author.username}`,
           authorUrl: message.author.displayAvatarURL()

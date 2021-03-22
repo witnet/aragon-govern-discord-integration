@@ -37,9 +37,10 @@
     "path": "../../scripts/packages"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "big.js": "^6.0.3",
     "cbor": "^7.0.4",
-    "axios": "^0.21.1",
+    "date-fns": "^2.19.0",
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "graphql": "^15.5.0",

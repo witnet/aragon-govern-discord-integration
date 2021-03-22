@@ -11,6 +11,7 @@ import { EmbedMessage } from './embedMessage'
 import { countReactions } from './countReactions'
 import { decodeTallyResult } from '../utils/decodeTally'
 import { longSetTimeout } from '../utils/longSetTimeout'
+import { formatDistance } from 'date-fns'
 
 import {
   defaultPositiveReactions,
@@ -39,8 +40,8 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
     const resultMessage = await message.channel.send(
       '@everyone',
       embedMessage.result({
-        title: `:stopwatch: The time for voting the proposal: ***${proposalDescription}*** is over!`,
-        description: `Creating Witnet data request...`,
+        title: `:stopwatch: The time for voting the proposal is over!`,
+        description: `The proposal result will now be retrieved by the [Witnet decentralized oracle](https://www.witnet.io/). This process may take a few minutes. The result will be reported to the Aragon Govern DAO ***${dao.name}***.`,
         result: {
           positive: votes.positive,
           negative: votes.negative
@@ -69,7 +70,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                 '@everyone',
                 embedMessage.error({
                   title: `:exclamation: There was an error executing the Witnet data request`,
-                  description: `The ID of the data request [${drTxHash}](https://witnet.network/search/${drTxHash})`,
+                  description: `You can check the Witnet transaction in the [block explorer](https://witnet.network/search/${drTxHash})`,
                   footerMessage: `Proposal ${proposalDescription}`,
                   authorUrl: message.author.displayAvatarURL()
                 })
@@ -77,6 +78,9 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
             }
             if (decodedTally.positive > decodedTally.negative) {
               const executionDelay = Number(dao.queue.config.executionDelay)
+              const disputingTime = formatDistance(0, executionDelay * 1000, {
+                includeSeconds: true
+              })
               const report = await reportVotingResult(
                 dao,
                 drTxHash,
@@ -89,8 +93,8 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                 message.channel.send(
                   '@everyone',
                   embedMessage.info({
-                    title: 'The data request result is positive',
-                    description: `The ID of the data request ([${drTxHash}](https://witnet.network/search/${drTxHash})) has been reported to the Ethereum contract ([${report?.transactionHash}](https://${etherscanUrl[ENVIRONMENT]}/tx/${report?.transactionHash}))`,
+                    title: 'The proposal passed with a majority of votes',
+                    description: `The proposed action has been scheduled in the ***${dao.name}*** Aragon Govern DAO (check the transaction on [Etherscan](https://${etherscanUrl[ENVIRONMENT]}/tx/${report?.transactionHash})). Unless disputed, the action will be executed in ${disputingTime}. The result of this voting was retrieved securely using the Witnet decentralized oracle, and can be verified on the [Witnet block explorer](https://witnet.network/search/${drTxHash}).`,
                     footerMessage: `Proposal ${proposalDescription}`,
                     authorUrl: message.author.displayAvatarURL()
                   })
@@ -99,8 +103,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                 message.channel.send(
                   '@everyone',
                   embedMessage.error({
-                    title:
-                      ':exclamation: There was an error reporting the proposal result',
+                    title: `:exclamation: There was an error reporting the result to the Aragon Govern DAO ***${dao.name}***`,
                     footerMessage: `Proposal ${proposalDescription}`,
                     authorUrl: message.author.displayAvatarURL()
                   })
@@ -115,8 +118,8 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                   message.channel.send(
                     '@everyone',
                     embedMessage.info({
-                      title: 'Proposal executed',
-                      description: `The proposal has been executed in Ethereum transaction: [${transactionHash}](https://${etherscanUrl[ENVIRONMENT]}/tx/${transactionHash})`,
+                      title: 'The proposed action has been executed',
+                      description: `The proposed action has been executed on Ethereum (check the transaction on [Etherscan](https://${etherscanUrl[ENVIRONMENT]}/tx/${transactionHash})).`,
                       footerMessage: `Proposal ${proposalDescription}`,
                       authorUrl: message.author.displayAvatarURL()
                     })
@@ -125,7 +128,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                   message.channel.send(
                     '@everyone',
                     embedMessage.error({
-                      title: `:warning: There was an error executing the proposal`,
+                      title: `:exclamation: There was an error executing the proposed action in the Aragon Govern DAO ***${dao.name}***`,
                       footerMessage: `Proposal ${proposalDescription}`,
                       authorUrl: message.author.displayAvatarURL()
                     })
@@ -136,8 +139,8 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
               return message.channel.send(
                 '@everyone',
                 embedMessage.info({
-                  title: `The disputed proposal did not receive a majority of positive votes`,
-                  description: `The action will not be executed. The ID of the Witnet data request [${drTxHash}](https://witnet.network/search/${drTxHash})`,
+                  title: `The proposal did not receive a majority of positive votes`,
+                  description: `The action will not be executed. The result of this voting was retrieved securely using the Witnet decentralized oracle, and can be verified on the [Witnet block explorer](https://witnet.network/search/${drTxHash}).`,
                   footerMessage: `Proposal ${proposalDescription}`,
                   authorUrl: message.author.displayAvatarURL()
                 })

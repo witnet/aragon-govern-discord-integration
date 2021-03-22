@@ -20,12 +20,15 @@ export interface DaoDirectory {
 }
 
 export interface UnitConversionExponents {
-  [origin: string]: number
+  [input: string]: {
+    [output: string]: number
+  }
 }
 
 export enum EthUnits {
   eth = 'eth',
-  gwei = 'gwei'
+  gwei = 'gwei',
+  wei = 'wei'
 }
 
 export type ProposalAction = {
@@ -49,6 +52,8 @@ export type EmbedMessageParams = {
   authorUrl?: string
   footerMessage?: string
   daoName?: string
+  amount?: string
+  address?: string
   role?: string
   result?: Result
 }

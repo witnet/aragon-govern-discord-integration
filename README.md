@@ -2,12 +2,12 @@
 
 # aragon-govern-discord-integration
 
-Enables voting on Aragon Govern using Discord reactions. Powered by Witnet.
+Enables voting on Aragon Govern using Discord reactions. Powered by [Witnet](https://www.witnet.io/).
 
 This repository uses lerna as a monorepo tool. Currently, there are two packages:
 
 - [Bot]: contains the logic for Aragon's conversational discord bot.
-- [Server]: acts as a middleware to publish read message reactions from the Discord API and publish it through a public REST API.
+- [Server]: acts as a middleware to read message reactions from the Discord API, and then publish the results through a public REST API.
 
 ## Available commands
 

@@ -79,13 +79,15 @@ export class EmbedMessage {
     proposalDescription,
     proposalDeadlineDate,
     authorUrl,
+    amount,
+    address,
     footerMessage
   }: EmbedMessageParams) {
     const proposalEmbedMessage = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle(`New proposal ***${proposalDescription}***`)
       .setDescription(
-        `The request for creating the proposal ***${proposalDescription}*** has been received. React to this proposal to vote!`
+        `The request for creating the proposal ***${proposalDescription}*** has been received. A positive result will schedule the action, thus eventually sending ***${amount} ETH*** to the address ***${address}***. React to this proposal to vote!`
       )
       .setThumbnail('attachment://aragon.png')
       .addFields(
@@ -114,7 +116,7 @@ export class EmbedMessage {
       .setColor('#0099ff')
       .setTitle('Congrats to you and your fellow Discord users!')
       .setDescription(
-        `This server is now connected to the DAO named ***${daoName}***. Only users with the role ***${role}*** can create proposals. **Remember to also add these other bots to your server**, otherwise the integration will fail:`
+        `This server is now connected to the DAO named ***${daoName}***. Only users with the role ***${role}*** can create proposals but **anyone with access to this channel can vote**. **Remember to also add these other bots to your server**, otherwise the integration will fail:`
       )
       .setThumbnail('attachment://aragon.png')
       .addFields(
