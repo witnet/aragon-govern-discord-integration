@@ -3,12 +3,12 @@ import { UnitConversionExponents, EthUnits } from '../types'
 
 export function convertEthUnits ({
   value,
-  input,
+  input = EthUnits.eth,
   output = EthUnits.wei
 }: {
   value: string
-  input: string
-  output?: string
+  input?: EthUnits
+  output?: EthUnits
 }) {
   const unit: UnitConversionExponents = {
     [EthUnits.eth]: {

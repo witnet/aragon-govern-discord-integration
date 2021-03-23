@@ -68,7 +68,9 @@ export class SetupRepository {
       CREATE TABLE IF NOT EXISTS setup (
         role TEXT,
         daoName TEXT,
-        guildId TEXT
+        guildId TEXT,
+        channelId TEXT,
+        channelName TEXT
       )
     `
     return this.db.run(sql)
@@ -76,10 +78,16 @@ export class SetupRepository {
 
   async insert (setup: Setup) {
     const sql = `
-      INSERT INTO setup (role, daoName, guildId)
-      VALUES (?, ?, ?)
+      INSERT INTO setup (role, daoName, guildId, channelId, channelName)
+      VALUES (?, ?, ?, ?, ?)
     `
-    return await this.db.run(sql, [setup.role, setup.daoName, setup.guildId])
+    return await this.db.run(sql, [
+      setup.role,
+      setup.daoName,
+      setup.guildId,
+      setup.channelId,
+      setup.channelName
+    ])
   }
 
   async updateOnly (setup: Setup) {
@@ -88,9 +96,17 @@ export class SetupRepository {
       SET 
         role=?,
         daoName=?,
-        guildId=?
+        guildId=?,
+        channelId=?,
+        channelName=?
     `
-    return await this.db.run(sql, [setup.role, setup.daoName, setup.guildId])
+    return await this.db.run(sql, [
+      setup.role,
+      setup.daoName,
+      setup.guildId,
+      setup.channelId,
+      setup.channelName
+    ])
   }
 
   async getSetup (): Promise<Setup> {

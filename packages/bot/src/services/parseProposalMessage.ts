@@ -1,5 +1,5 @@
 import { Message } from 'discord.js'
-import { RequestMessage, EthUnits } from '../types'
+import { RequestMessage } from '../types'
 import { convertEthUnits } from '../utils/convertEthUnits'
 
 // parse received proposal message
@@ -34,8 +34,7 @@ export function parseProposalMessage (message: Message): RequestMessage {
       to: message.content.match(toRegex)?.[0].split(':')[1] || '',
       // get action value from message
       value: convertEthUnits({
-        value: message.content.match(valueRegex)?.[0].split(':')[1] || '0',
-        input: EthUnits.eth
+        value: message.content.match(valueRegex)?.[0].split(':')[1] || '0'
       }),
       // get action data from message
       data: message.content.match(dataRegex)?.[0].split(':')[1] || '0x00'

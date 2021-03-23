@@ -121,6 +121,16 @@ export class MessageHandler {
         })
       )
     }
+
+    if (message.channel.id !== this.initialSetup.channelId) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: You are trying to create a proposal in the wrong channel`,
+          description: `You can only create proposals in the channel where the Aragon Govern integration has been setup for the last time (#${this.initialSetup.channelName})`
+        })
+      )
+    }
+
     if (!this.initialSetup.role) {
       return message.reply(
         this.embedMessage.warning({
@@ -383,7 +393,16 @@ export class MessageHandler {
 
     // Keep track of the Discord server <> DAO name relation
     this.daoDirectory[guildId] = dao
-    this.saveSetup({ daoName, role: roleAllowed, guildId })
+    const channelId = message.channel.id
+    const channelName =
+      message.guild?.channels.cache.get(message.channel.id)?.name || ''
+    this.saveSetup({
+      daoName,
+      role: roleAllowed,
+      guildId,
+      channelId,
+      channelName
+    })
     return message.reply(
       '@everyone',
       this.embedMessage.dao({ daoName, role: roleAllowed })

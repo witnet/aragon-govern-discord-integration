@@ -41,6 +41,8 @@ export type Setup = {
   role: string
   daoName: string
   guildId: string
+  channelId: string
+  channelName: string
 }
 
 // Maps guild IDs to DAOs

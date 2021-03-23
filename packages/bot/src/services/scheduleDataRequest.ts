@@ -70,7 +70,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
                 '@everyone',
                 embedMessage.error({
                   title: `:exclamation: There was an error executing the Witnet data request`,
-                  description: `You can check the Witnet transaction in the [block explorer](https://witnet.network/search/${drTxHash})`,
+                  description: `You can check the Witnet transaction in the [block explorer](https://witnet.network/search/${drTxHash}).`,
                   footerMessage: `Proposal ${proposalDescription}`,
                   authorUrl: message.author.displayAvatarURL()
                 })

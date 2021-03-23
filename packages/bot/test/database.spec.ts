@@ -168,7 +168,9 @@ describe('setup database', () => {
       CREATE TABLE IF NOT EXISTS setup (
         role TEXT,
         daoName TEXT,
-        guildId TEXT
+        guildId TEXT,
+        channelId TEXT,
+        channelName TEXT
       )
     `
     const result = await new Promise((resolve, reject) => {
@@ -187,13 +189,15 @@ describe('setup database', () => {
       CREATE TABLE IF NOT EXISTS setup (
         role TEXT,
         daoName TEXT,
-        guildId TEXT
+        guildId TEXT,
+        channelId TEXT,
+        channelName TEXT
       )
     `
 
     const insertSql = `
-        INSERT INTO setup (role, daoName, guildId)
-        VALUES (?, ?, ?) 
+        INSERT INTO setup (role, daoName, guildId, channelId, channelName)
+        VALUES (?, ?, ?, ?, ?) 
     `
 
     const result = await new Promise((resolve, reject) => {
@@ -201,8 +205,16 @@ describe('setup database', () => {
         const role = 'admin'
         const daoName = 'bitconnect'
         const guildId = '1234'
+        const channelId = '1234'
+        const channelName = 'general'
         await db.run(createTableSql)
-        const a = await db.run(insertSql, [role, daoName, guildId])
+        const a = await db.run(insertSql, [
+          role,
+          daoName,
+          guildId,
+          channelId,
+          channelName
+        ])
         resolve(a)
       }, 1000)
     })
@@ -215,6 +227,8 @@ describe('setup database', () => {
     const role = 'admin'
     const daoName = 'bitconnect'
     const guildId = '1234'
+    const channelId = '1234'
+    const channelName = 'general'
     const result = await new Promise((resolve, reject) => {
       setTimeout(async () => {
         const sql = `SELECT * FROM setup`
@@ -226,7 +240,9 @@ describe('setup database', () => {
     const row = {
       role,
       daoName,
-      guildId
+      guildId,
+      channelId,
+      channelName
     }
     const expected = [row]
 
@@ -238,6 +254,8 @@ describe('setup database', () => {
     const role = '@everybody'
     const daoName = 'bitconnect'
     const guildId = '1234'
+    const channelId = '1234'
+    const channelName = 'general'
     const result = await new Promise((resolve, reject) => {
       setTimeout(async () => {
         const updateSql = `
@@ -245,10 +263,18 @@ describe('setup database', () => {
           SET 
             role=?,
             daoName=?,
-            guildId=?
+            guildId=?,
+            channelId=?,
+            channelName=?
         `
         const sql = `SELECT * FROM setup`
-        await db.all(updateSql, [role, daoName, guildId])
+        await db.all(updateSql, [
+          role,
+          daoName,
+          guildId,
+          channelId,
+          channelName
+        ])
         const a = await db.all(sql)
         resolve(a)
       }, 1000)
@@ -257,7 +283,9 @@ describe('setup database', () => {
     const row = {
       role,
       daoName,
-      guildId
+      guildId,
+      channelId,
+      channelName
     }
     const expected = [row]
 
@@ -280,7 +308,9 @@ describe('SetupRepository', () => {
       CREATE TABLE IF NOT EXISTS setup (
         role TEXT,
         daoName TEXT,
-        guildId TEXT
+        guildId TEXT,
+        channelId TEXT,
+        channelName TEXT
       )
     `
     expect(runMock).toHaveBeenNthCalledWith(1, sql)
@@ -294,13 +324,17 @@ describe('SetupRepository', () => {
     const role = 'admin'
     const daoName = 'bitconnect'
     const guildId = '1234'
+    const channelId = '1234'
+    const channelName = 'general'
 
     const setupRepository = new SetupRepository(database)
 
     await setupRepository.insert({
       role,
       daoName,
-      guildId
+      guildId,
+      channelId,
+      channelName
     })
   })
   it('update values in setup table', async () => {
@@ -311,12 +345,16 @@ describe('SetupRepository', () => {
     const role = 'admin'
     const daoName = 'bitconnect'
     const guildId = '1234'
+    const channelId = '1234'
+    const channelName = 'general'
 
     const setupRepository = new SetupRepository(database)
     await setupRepository.updateOnly({
       role,
       daoName,
-      guildId
+      guildId,
+      channelId,
+      channelName
     })
 
     const sql = `
@@ -324,9 +362,17 @@ describe('SetupRepository', () => {
       SET 
         role=?,
         daoName=?,
-        guildId=?
+        guildId=?,
+        channelId=?,
+        channelName=?
     `
-    expect(runMock).toHaveBeenNthCalledWith(1, sql, [role, daoName, guildId])
+    expect(runMock).toHaveBeenNthCalledWith(1, sql, [
+      role,
+      daoName,
+      guildId,
+      channelId,
+      channelName
+    ])
   })
   it('update setup values', () => {
     const database = new Database()
