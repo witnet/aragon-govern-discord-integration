@@ -149,4 +149,48 @@ export class EmbedMessage {
       ]
     }
   }
+
+  proposalInstructions ({ role, daoName }: EmbedMessageParams) {
+    const daoMessage = new MessageEmbed()
+      .setColor('#0099ff')
+      .setTitle(`${role} can create proposals!`)
+      .setDescription(
+        `Only users with the role **${role}** can create proposals for **${daoName}**.
+
+        The proposal should follow this format:\n\`!proposal <deadline> <description> to:<address> value:<ETH> data?:<data>\`.
+        An example of valid proposal is \`!proposal 2021/03/26 15:07:00 do you want to give a grant to ENTITY? to:0x199eA5114D1612e40E3457Eaf9DF2779340EAD12 value:0.01\``
+      )
+      .addFields(
+        {
+          name: 'deadline',
+          value:
+            'Date in UTC with the following format `YYYY MM DD HH:MM:SS` that indicates when the voting time finishes.',
+          inline: false
+        },
+        {
+          name: 'description',
+          value: 'Description of the proposal.',
+          inline: false
+        },
+        {
+          name: 'address',
+          value: 'Ethereum address where funds will be sent.',
+          inline: false
+        },
+        {
+          name: 'eth',
+          value: 'Eth amount in wei to be sent if the proposal is accepted.',
+          inline: false
+        },
+        {
+          name: 'data',
+          value:
+            'An optional [ABI byte string](https://docs.soliditylang.org/en/latest/abi-spec.html) containing the data of the function call on a contract. Default value is `0x00`.',
+          inline: false
+        }
+      )
+    return {
+      embed: daoMessage
+    }
+  }
 }

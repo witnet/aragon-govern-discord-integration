@@ -407,9 +407,14 @@ export class MessageHandler {
       channelId,
       channelName
     })
-    return message.reply(
+    await message.reply(
       '@everyone',
       this.embedMessage.dao({ daoName, role: roleAllowed })
+    )
+
+    return message.channel.send(
+      `@everyone`,
+      this.embedMessage.proposalInstructions({ daoName, role: roleAllowed })
     )
   }
 }
