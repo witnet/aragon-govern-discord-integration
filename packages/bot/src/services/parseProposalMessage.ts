@@ -27,7 +27,7 @@ export function parseProposalMessage (message: Message): RequestMessage {
     }
   } else {
     const toRegex = /\bto:\w+/
-    const valueRegex = /\bvalue:\w+(\.\w)?/
+    const valueRegex = /\bvalue:\w+(\.\w+)?/
     const dataRegex = /\bdata:\w+/
     const proposalAction = {
       // get action address from message

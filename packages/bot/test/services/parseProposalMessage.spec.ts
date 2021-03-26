@@ -4,7 +4,7 @@ import { Message } from 'discord.js'
 describe('parseProposalMessage', () => {
   it('returns the message content', () => {
     const message = ({
-      content: '!proposal 2021/02/10 12:00:00 description to:1234 value:0.1',
+      content: '!proposal 2021/02/10 12:00:00 description to:1234 value:0.01',
       id: 1325564365,
       channel: {
         id: 1234546578909867564534231
@@ -19,7 +19,7 @@ describe('parseProposalMessage', () => {
       proposalDescription: 'description',
       proposalAction: {
         to: '1234',
-        value: '100000000000000000',
+        value: '10000000000000000',
         data: '0x00'
       }
     }

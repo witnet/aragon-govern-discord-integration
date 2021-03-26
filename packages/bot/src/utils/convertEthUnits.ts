@@ -7,8 +7,8 @@ export function convertEthUnits ({
   output = EthUnits.wei
 }: {
   value: string
-  input?: EthUnits
-  output?: EthUnits
+  input?: string
+  output?: string
 }) {
   const unit: UnitConversionExponents = {
     [EthUnits.eth]: {
