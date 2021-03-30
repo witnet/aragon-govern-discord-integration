@@ -52,7 +52,7 @@ describe('convertEthToWei', () => {
   it('returns the correct wei value if the input is 0.01 eth', async () => {
     const expected = '10000000000000000'
     const result = convertEthUnits({
-      value: '0.01',
+      value: '0.01'
     })
     expect(result).toBe(expected)
   })

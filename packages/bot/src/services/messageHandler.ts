@@ -141,7 +141,10 @@ export class MessageHandler {
     }
 
     const isAllowed = message.member?.roles.cache.some(role => {
-      return role.name === this.initialSetup?.role
+      return (
+        `<@&${role.id}>` === this.initialSetup?.role ||
+        this.initialSetup?.role === '@everyone'
+      )
     })
 
     if (this.initialSetup.role && !isAllowed) {
@@ -328,17 +331,18 @@ export class MessageHandler {
     console.log(
       `Received setup request for Discord guild ${guildId} trying to integrate with DAO named "${daoName}"`
     )
-    const roles = message.guild?.roles.cache.map(role => role.name)
-    const roleOptions = `Select one of the following roles: \`${roles?.join(
-      '`, `'
+    const roles = message.guild?.roles.cache.map(role => `<@&${role.id}>`)
+    const rolesName = message.guild?.roles.cache.map(role => role.name)
+    const roleOptions = `Select one of the following roles: \`${rolesName?.join(
+      '`, `@'
     )}\`. Make sure you are following this format \`!setup theNameOfYourDao userRole\``
     // Make sure a DAO name has been provided
     if (!daoName) {
       return message.reply(
         this.embedMessage.warning({
           title: 'The setup command should follow this format:',
-          description: `\`!setup theNameOfYourDao userRole\`\n Only users with the selected role will be able to create proposals. The roles available are: \`${roles?.join(
-            '`, `'
+          description: `\`!setup theNameOfYourDao userRole\`\n Only users with the selected role will be able to create proposals. The roles available are: \`${rolesName?.join(
+            '`, `@'
           )}\``
         })
       )
@@ -382,7 +386,7 @@ export class MessageHandler {
       )
     }
 
-    if (!roles?.includes(roleAllowed)) {
+    if (!roles?.includes(roleAllowed) && roleAllowed !== '@everyone') {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Please select the role of the users allowed to create proposals`,
