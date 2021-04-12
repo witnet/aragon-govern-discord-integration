@@ -1,11 +1,11 @@
 import { GraphQLClient } from 'graphql-request'
 import { injectable } from 'inversify'
+import { subgraphEndpoint } from '../../constants'
 import { ErrorUnexpectedResult } from './errors'
 import { QUERY_DAO, QUERY_DAOS } from './queries'
 import { RegistryEntry } from './types'
 
-const ENDPOINT =
-  'https://api.thegraph.com/subgraphs/name/aragon/aragon-govern-rinkeby'
+const ENDPOINT = subgraphEndpoint
 
 @injectable()
 export class SubgraphClient {
@@ -41,6 +41,7 @@ export class SubgraphClient {
       [QUERY_DAO, { name }],
       `Unexpected result when queryin DAO by name ${name}.`
     )
+    console.log('result', result)
     return result.registryEntries && result.registryEntries.length > 0
       ? result.registryEntries[0]
       : null

@@ -11,3 +11,5 @@ export const gasPriceEndpoint: string =
   'https://ethgasstation.info/api/ethgasAPI.json'
 
 export const defaultMinimumProposalDeadline = Date.now() + 4 * 3600 * 1000
+
+export const subgraphEndpoint = process.env.SUBGRAPH_ENDPOINT || 'https://api.thegraph.com/subgraphs/name/aragon/aragon-govern-rinkeby'
