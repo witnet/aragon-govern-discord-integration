@@ -368,7 +368,17 @@ export class MessageHandler {
     }
 
     // Make sure that the DAO name exists in the Aragon Govern subgraph
-    const dao = await this.subgraphClient.queryDaoByName(daoName)
+    let dao
+    try {
+      dao = await this.subgraphClient.queryDaoByName(daoName)
+    } catch (e) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: Sorry, an error ocurred trying to register a DAO named "${daoName}"`
+        })
+      )
+    }
+
     if (!dao) {
       return message.reply(
         this.embedMessage.warning({
