@@ -41,7 +41,7 @@ export class SubgraphClient {
       [QUERY_DAO, { name }],
       `Unexpected result when queryin DAO by name ${name}.`
     )
-    console.log('result', result)
+    
     return result.registryEntries && result.registryEntries.length > 0
       ? result.registryEntries[0]
       : null
