@@ -19,7 +19,9 @@
     "build": "scripty",
     "test": "scripty",
     "lint": "scripty",
-    "clean": "scripty"
+    "clean": "scripty",
+    "bot": "./node_modules/.bin/lerna --scope @adi/bot exec  -- yarn start",
+    "server": "./node_modules/.bin/lerna --scope @adi/server exec  -- yarn start"
   },
   "scripty": {
     "path": "./scripts/workspace"
@@ -31,6 +33,7 @@
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
     "@commitlint/config-lerna-scopes": "^11.0.0",
+    "@lerna/filter-options": "^4.0.0",
     "commitlint": "^11.0.0",
     "conventional-changelog": "^3.1.24",
     "husky": "^4.3.0",
