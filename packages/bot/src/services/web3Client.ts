@@ -8,7 +8,7 @@ import { estimatedGasPrice } from './estimatedGasPrice'
 const PROVIDER_URL = process.env.WEB3_PROVIDER || 'http://localhost:8544'
 const GETH_ADDRESS =
   process.env.WEB3_ACCOUNT || '0xa550Cf4F03Bd2417Cf83c8a652703cdC33c016ee'
-const GAS_LIMIT = 4000000
+const GAS_LIMIT = 1500000
 
 export class Web3Client {
   private client: Web3
