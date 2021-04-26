@@ -41,8 +41,13 @@ export class Web3Client {
       dao.queue.address
     )
     const subgraphClient = new SubgraphClient()
+    let nonce = (await subgraphClient.queryDaoByName(dao.name))?.queue.nonce
+    if (!nonce) {
+      return null
+    }
+
     const payload = {
-      nonce: await subgraphClient.queryNextNonce(dao.name),
+      nonce: parseInt(nonce) + 1,
       executionTime,
       submitter: GETH_ADDRESS,
       executor: dao.executor.address,
