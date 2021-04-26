@@ -34,6 +34,6 @@ export class SubgraphClient {
       [QUERY_DAO, { name }],
       `Unexpected result when queryin DAO by name ${name}.`
     )
-    return result.daos && result.daos.length > 0 ? result.daos[0] : null
+    return result?.daos?.[0] || null
   }
 }
