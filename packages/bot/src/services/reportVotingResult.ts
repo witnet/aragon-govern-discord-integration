@@ -1,11 +1,11 @@
 import { Web3Client } from './web3Client'
-import { RegistryEntry } from './subgraph/types'
+import { DaoEntry } from './subgraph/types'
 import { ProposalAction } from 'src/types'
 
 const web3 = new Web3Client()
 
 export async function reportVotingResult (
-  dao: RegistryEntry,
+  dao: DaoEntry,
   drTxHash: any,
   deadline: any,
   action: ProposalAction

@@ -2,8 +2,8 @@ import { GraphQLClient } from 'graphql-request'
 import { injectable } from 'inversify'
 import { subgraphEndpoint } from '../../constants'
 import { ErrorUnexpectedResult } from './errors'
-import { QUERY_DAO, QUERY_DAOS } from './queries'
-import { RegistryEntry } from './types'
+import { DaoEntry } from './types'
+import { QUERY_DAO } from './queries'
 
 const ENDPOINT = subgraphEndpoint
 
@@ -28,44 +28,12 @@ export class SubgraphClient {
     }
   }
 
-  async queryDaos (): Promise<RegistryEntry[] | null> {
-    const result = await this.fetchResult<{ registryEntries: RegistryEntry[] }>(
-      [QUERY_DAOS],
-      `Unexpected result when querying the DAOs.`
-    )
-    return result.registryEntries ?? []
-  }
-
-  async queryDaoByName (name: string): Promise<RegistryEntry | null> {
-    const result = await this.fetchResult<{ registryEntries: RegistryEntry[] }>(
+  async queryDaoByName (name: string): Promise<DaoEntry | null> {
+    console.log('Querying dao by name: ', name)
+    const result = await this.fetchResult<{ daos: DaoEntry[] }>(
       [QUERY_DAO, { name }],
       `Unexpected result when queryin DAO by name ${name}.`
     )
-    
-    return result.registryEntries && result.registryEntries.length > 0
-      ? result.registryEntries[0]
-      : null
-  }
-
-  async queryNextNonce (name: string): Promise<number> {
-    let hasMore = false
-    let result: { registryEntries: Array<any> } = { registryEntries: [] }
-    let limit = 10
-    let counter = 1
-
-    while (!hasMore) {
-      result = await this.fetchResult<{ registryEntries: RegistryEntry[] }>(
-        [QUERY_DAO, { name, first: limit, skip: limit * (counter - 1) }],
-        `Unexpected result when queryin DAO by name ${name}.`
-      )
-      if (result.registryEntries[0].queue.queued.length === limit) {
-        counter++
-      } else {
-        hasMore = true
-      }
-    }
-    return (
-      (counter - 1) * limit + result.registryEntries[0].queue.queued.length + 1
-    )
+    return result.daos && result.daos.length > 0 ? result.daos[0] : null
   }
 }

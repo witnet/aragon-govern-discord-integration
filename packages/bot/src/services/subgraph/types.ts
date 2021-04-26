@@ -5,18 +5,17 @@ type Timestamp = string
 type Bytes = string
 
 type CollateralData = {
-  id: string
   token: string
   amount: string
 }
 
 type Config = {
-  id: string
   executionDelay: string
   scheduleDeposit: CollateralData
   challengeDeposit: CollateralData
   resolver: string
   rules: string
+  maxCalldataSize: string
 }
 
 export type Action = {
@@ -34,7 +33,7 @@ export type Payload = {
   proof: Bytes
 }
 
-type Queued = {
+type Container = {
   id: string
   state: string
   payload: Payload
@@ -43,14 +42,15 @@ type Queued = {
 type Queue = {
   address: Address
   config: Config
-  queued: Queued[]
+  containers: Container[]
+  nonce: string
 }
 
 type Executor = {
   address: Address
 }
 
-export type RegistryEntry = {
+export type DaoEntry = {
   name: string
   queue: Queue
   executor: Executor

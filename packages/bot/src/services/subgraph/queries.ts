@@ -1,7 +1,7 @@
 import { gql } from 'graphql-request'
 
 const RegistryEntryBase = gql`
-  fragment RegistryEntryBase on RegistryEntry {
+  fragment DaoEntryBase on Dao {
     name
     queue {
       address
@@ -17,8 +17,9 @@ const RegistryEntryBase = gql`
         }
         resolver
         rules
+        maxCalldataSize
       }
-      queued(skip: $skip, first: $first) {
+      containers(skip: $skip, first: $first) {
         id
         state
         payload {
@@ -34,6 +35,7 @@ const RegistryEntryBase = gql`
           proof
         }
       }
+      nonce
     }
     executor {
       address
@@ -41,19 +43,10 @@ const RegistryEntryBase = gql`
   }
 `
 
-export const QUERY_DAOS = gql`
-  query RegistryEntry($skip: Int, $first: Int) {
-    registryEntries {
-      ...RegistryEntryBase
-    }
-  }
-  ${RegistryEntryBase}
-`
-
 export const QUERY_DAO = gql`
-  query RegistryEntry($name: String!, $skip: Int, $first: Int) {
-    registryEntries(where: { name: $name }, first: 1) {
-      ...RegistryEntryBase
+  query Dao($name: String!, $skip: Int, $first: Int) {
+    daos(where: { name: $name }, first: 1) {
+      ...DaoEntryBase
     }
   }
   ${RegistryEntryBase}

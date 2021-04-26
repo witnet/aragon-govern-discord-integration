@@ -2,7 +2,7 @@ import { Channel, Client, Message, TextChannel } from 'discord.js'
 import { inject, injectable } from 'inversify'
 import { TYPES, ReactionCount, Proposal, ReactionEvent } from './types'
 
-import { RegistryEntry } from './services/subgraph/types'
+import { DaoEntry } from './services/subgraph/types'
 
 import { MessageHandler } from './services/messageHandler'
 import { ProposalRepository, SetupRepository } from './database'
@@ -77,7 +77,7 @@ export class Bot {
 
   public loadActiveProposals () {
     this.proposalRepository.getActives().then((proposals: Array<Proposal>) => {
-      let dao: RegistryEntry | null
+      let dao: DaoEntry | null
       let message: Message | null | void
       proposals.forEach((proposal: Proposal) => {
         if (!hasProposalExpired(proposal)) {

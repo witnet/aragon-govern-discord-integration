@@ -1,8 +1,9 @@
 import Web3 from 'web3'
 import queueAbi from '../contracts/GovernQueue.json'
-import { Action, Payload, RegistryEntry } from './subgraph/types'
+import { Action, Payload, DaoEntry } from './subgraph/types'
 import { SubgraphClient } from './subgraph'
 import { estimatedGasPrice } from './estimatedGasPrice'
+
 // TODO: move configuration variables to config file
 const PROVIDER_URL = process.env.WEB3_PROVIDER || 'http://localhost:8544'
 const GETH_ADDRESS =
@@ -29,7 +30,7 @@ export class Web3Client {
   }
 
   async schedule (
-    dao: RegistryEntry,
+    dao: DaoEntry,
     executionTime: string | number,
     allowFailuresMap: string = '0x0000000000000000000000000000000000000000000000000000000000000000',
     proof: string,
@@ -73,7 +74,7 @@ export class Web3Client {
       })
   }
 
-  async execute (dao: RegistryEntry, payload: Payload) {
+  async execute (dao: DaoEntry, payload: Payload) {
     const queue = new this.client.eth.Contract(
       (<any>queueAbi).abi,
       dao.queue.address

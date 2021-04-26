@@ -1,4 +1,4 @@
-import { RegistryEntry } from './services/subgraph/types'
+import { DaoEntry } from './services/subgraph/types'
 
 export const TYPES = {
   Bot: Symbol('Bot'),
@@ -16,7 +16,7 @@ export const TYPES = {
 
 // Maps guild IDs to DAOs
 export interface DaoDirectory {
-  [guildId: string]: RegistryEntry
+  [guildId: string]: DaoEntry
 }
 
 export interface UnitConversionExponents {

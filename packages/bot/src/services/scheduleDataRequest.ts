@@ -5,7 +5,7 @@ import { executeVotingResult } from './executeVotingResult'
 import { createDataRequest } from './createDataRequest'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
-import { RegistryEntry } from './subgraph/types'
+import { DaoEntry } from './subgraph/types'
 import { EtherscanUrl, ProposalAction, Url } from '../types'
 import { EmbedMessage } from './embedMessage'
 import { countReactions } from './countReactions'
@@ -28,7 +28,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
     channelId: string,
     messageId: string,
     message: Message,
-    dao: RegistryEntry,
+    dao: DaoEntry,
     proposalDescription: string,
     proposalAction: ProposalAction
   ) => {
