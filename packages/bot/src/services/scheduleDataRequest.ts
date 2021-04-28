@@ -78,7 +78,7 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
             }
             if (decodedTally.positive > decodedTally.negative) {
               const executionDelay = Number(dao.queue.config.executionDelay)
-              const disputingTime = formatDistance(0, executionDelay * 1000, {
+              const disputingTime = formatDistance(0, (executionDelay + DEFAULT_EXEC_TIME) * 1000, {
                 includeSeconds: true
               })
               const report = await reportVotingResult(
