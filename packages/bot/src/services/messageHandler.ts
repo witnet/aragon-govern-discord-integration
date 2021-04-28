@@ -181,7 +181,7 @@ export class MessageHandler {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Invalid format`,
-          description: `The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<ETH> data?:<data>'\``
+          description: `The proposal should follow this format:\n \`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<ETH> data?:<data>\``
         })
       )
     }
@@ -204,6 +204,15 @@ export class MessageHandler {
 
     const minimalProposalDeadline =
       process.env.MINIMUM_PROPOSAL_DEADLINE || defaultMinimumProposalDeadline
+
+    if (!proposalDeadlineTimestamp) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: Invalid deadline`,
+          description: `Please try again with a valid deadline. The proposal should follow this format:\n'\`!proposal yyyy/MM/dd HH:mm:ss <description> to:<address> value:<ETH> data?:<data>'\``
+        })
+      )
+    }
 
     if (proposalDeadlineTimestamp <= currentTime) {
       return message.reply(
@@ -422,9 +431,15 @@ export class MessageHandler {
       this.embedMessage.dao({ daoName, role: roleAllowed })
     )
 
+    const role = message.guild?.roles.cache.find(role => {
+      return `<@&${role.id}>` === roleAllowed
+    })
     return message.channel.send(
       `@everyone`,
-      this.embedMessage.proposalInstructions({ daoName, role: roleAllowed })
+      this.embedMessage.proposalInstructions({
+        daoName,
+        role: role ? `@${role.name}` : roleAllowed
+      })
     )
   }
 }

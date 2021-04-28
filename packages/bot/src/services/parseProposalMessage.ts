@@ -40,25 +40,28 @@ export function parseProposalMessage (message: Message): RequestMessage {
       data: message.content.match(dataRegex)?.[0].split(':')[1] || '0x00'
     }
     const proposalDescription = chunks
-      .slice(3, chunks.length === 7 ? -3 : -2)
+      .slice(3, message.content.match(dataRegex) ? -3 : -2)
       .join(' ')
     const date = chunks[1].split('/')
     const year = date[0] || 0
     const month = date[1] || 0
     const day = date[2] || 0
     const time = chunks[2]?.split(':')
-    const hour = time[0] || 0
-    const minutes = time[1] || 0
-    const seconds = time[2] || 0
+    const hour = Number(time[0]) < 24 ? time[0] || 0 : null
+    const minutes = Number(time[1]) < 60 ? time[1] || 0 : null
+    const seconds = Number(time[2]) < 60 ? time[2] || 0 : null
     const proposalDeadlineDate = `${year}/${month}/${day} ${hour}:${minutes}:${seconds} UTC`
-    const proposalDeadlineTimestamp = Date.UTC(
-      Number(year),
-      Number(month) - 1,
-      Number(day),
-      Number(hour),
-      Number(minutes),
-      Number(seconds)
-    )
+    const proposalDeadlineTimestamp =
+      hour === null || minutes === null || seconds === null
+        ? 0
+        : Date.UTC(
+            Number(year),
+            Number(month) - 1,
+            Number(day),
+            Number(hour),
+            Number(minutes),
+            Number(seconds)
+          )
     return {
       channelId,
       guildId,

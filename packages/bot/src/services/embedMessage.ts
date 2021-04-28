@@ -153,7 +153,7 @@ export class EmbedMessage {
   proposalInstructions ({ role, daoName }: EmbedMessageParams) {
     const daoMessage = new MessageEmbed()
       .setColor('#0099ff')
-      .setTitle(`${role} can create proposals!`)
+      .setTitle(`**${role}** can create proposals!`)
       .setDescription(
         `Only users with the role **${role}** can create proposals for **${daoName}**.
 
