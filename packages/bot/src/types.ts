@@ -118,4 +118,16 @@ export type Proposal = {
   deadline: number
   daoName: string
   action: ProposalAction
+export type DbProposal = {
+  messageId: string
+  channelId: string
+  guildId: string
+  description: string
+  createdAt: number
+  deadline: number
+  daoName: string
+  actionTo: string
+  actionData: string
+  actionValue: string
+  drTxHash: string | null
 }

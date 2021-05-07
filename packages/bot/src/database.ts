@@ -137,7 +137,9 @@ export class ProposalRepository {
         description TEXT,
         createdAt NUMERIC,
         deadline NUMERIC,
-        daoName TEXT
+        actionTo TEXT,
+        actionValue TEXT,
+        actionData TEXT,
       )
     `
     return this.db.run(sql)
@@ -156,7 +158,9 @@ export class ProposalRepository {
       proposal.description,
       proposal.createdAt,
       proposal.deadline,
-      proposal.daoName
+      proposal.action.to,
+      proposal.action.value,
+      proposal.action.data,
     ])
   }
 
@@ -167,16 +171,41 @@ export class ProposalRepository {
       WHERE deadline > ?
     `
 
-    return await this.db.all<Proposal>(sql, [Date.now()])
+    const activeDbProposals: Array<DbProposal> =
+      (await this.db.all<DbProposal>(sql, [Date.now()])) || []
+
+    return await Promise.all(activeDbProposals.map(this._normalizeProposal))
   }
 
-  async getActive (id: string): Promise<Proposal> {
+  async getActive (messageId: string): Promise<Proposal> {
     const sql = `
       SELECT *
       FROM proposals
       WHERE (deadline > ?) AND messageId = ?
     `
 
-    return await this.db.get<Proposal>(sql, [Date.now(), id])
+    const activeDbProposal = await this.db.get<DbProposal>(sql, [
+      Date.now(),
+      messageId
+    ])
+
+    return this._normalizeProposal(activeDbProposal)
+  }
+  async _normalizeProposal (dbProposal: DbProposal): Promise<Proposal> {
+    return {
+      channelId: dbProposal.channelId,
+      createdAt: dbProposal.createdAt,
+      daoName: dbProposal.daoName,
+      deadline: dbProposal.deadline,
+      description: dbProposal.description,
+      guildId: dbProposal.guildId,
+      messageId: dbProposal.messageId,
+      drTxHash: dbProposal.drTxHash,
+      action: {
+        data: dbProposal.actionData,
+        to: dbProposal.actionTo,
+        value: dbProposal.actionValue
+      },
+    }
   }
 }
