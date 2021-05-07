@@ -14,10 +14,17 @@ import {
 import { SubgraphClient } from './subgraph'
 import { EmbedMessage } from './embedMessage'
 import { ProposalRepository, SetupRepository } from '../database'
-import { scheduleDataRequest } from './scheduleDataRequest'
+import {
+  handleScheduleDataRequestResult,
+  scheduleDataRequest,
+  reportAndExecute,
+  executeVotingResultAndHandleResponse
+} from './scheduleDataRequest'
 import { longSetTimeout } from '../utils/longSetTimeout'
 import { defaultMinimumProposalDeadline } from '../constants'
 import { convertEthUnits } from '../utils/convertEthUnits'
+import { ExecuteError, ScheduleError } from '../error'
+import { parseRetryMessage } from './parseRetryMessage'
 
 @injectable()
 export class MessageHandler {
@@ -71,6 +78,10 @@ export class MessageHandler {
         return MessageHandler.newDao(message)
       } else if (this.commandFinder.isNewProposalMessage(message.content)) {
         return this.newProposal(message)
+      } else if (this.commandFinder.isReExecuteMessage(message.content)) {
+        return this.reExecute(message)
+      } else if (this.commandFinder.isReScheduleMessage(message.content)) {
+        return this.reSchedule(message)
       } else {
         return
       }
@@ -273,7 +284,7 @@ export class MessageHandler {
       }
 
       const dao = this.daoDirectory[guildId]
-      // TODO: Handle error saving proposal
+
       this.saveProposal({
         messageId,
         channelId,
@@ -282,22 +293,36 @@ export class MessageHandler {
         createdAt: currentTime,
         deadline: proposalDeadlineTimestamp,
         daoName: dao.name,
-        action: proposalAction
+        action: proposalAction,
+        executeError: false,
+        scheduleError: false
       })
 
       longSetTimeout(() => {
         scheduleDataRequest(this.embedMessage)(
-          channelId,
-          messageId,
-          message,
-          dao,
-          proposalDescription,
-          proposalAction
+          {
+            channelId,
+            messageId,
+            message,
+            dao,
+            proposalDescription,
+            proposalAction
+          },
+          (
+            error: ExecuteError | ScheduleError | Error | null,
+            _,
+            drTxHash?: string
+          ) =>
+            handleScheduleDataRequestResult(this.proposalRepository)(
+              error,
+              messageId,
+              drTxHash
+            )
         )
 
         this.requestMessage = null
-        // TODO: it can overflow if the proposal is scheduled far in the future.
       }, proposalDeadlineTimestamp - currentTime)
+
       return
     } else {
       return
@@ -442,4 +467,147 @@ export class MessageHandler {
       })
     )
   }
+
+  private async reSchedule (message: Message) {
+    const { messageId, gasPrice } = parseRetryMessage(message)
+
+    if (!messageId) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: proposal_id not found`,
+          description: `You have to specify the proposal_id of the proposal`
+        })
+      )
+    }
+
+    const proposal = await this.proposalRepository.getProposalByMessageId(
+      messageId
+    )
+
+    if (!message.member?.hasPermission('ADMINISTRATOR')) {
+      this.embedMessage.warning({
+        title: `:warning: Sorry, you are not allowed to reSchedule a proposal`,
+        description: `Only administrators can do that.`
+      })
+    }
+
+    if (!proposal) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: Message not found`,
+          description: `There isn't a proposal with id: ${messageId}`
+        })
+      )
+    }
+
+    if (gasPrice && !isValidGasPrice(gasPrice)) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: Invalid format`,
+          description: `The gas price should be a number in wei`
+        })
+      )
+    }
+
+    const dao = this.daoDirectory[proposal.guildId]
+
+    if (proposal.scheduleError) {
+      if (proposal.drTxHash) {
+        this.proposalRepository.setDrTxHash(messageId, proposal.drTxHash)
+        const report = await reportAndExecute(this.embedMessage)(
+          {
+            dao,
+            drTxHash: proposal.drTxHash,
+            proposalAction: proposal.action,
+            message,
+            proposalDescription: proposal.description,
+            gasPrice: gasPrice || undefined,
+            messageId: messageId
+          },
+          (error: ScheduleError | ExecuteError | null, _, drTxHash?: string) =>
+            handleScheduleDataRequestResult(this.proposalRepository)(
+              error,
+              messageId,
+              drTxHash
+            )
+        )
+
+        if (report) {
+          this.proposalRepository.setScheduleReport(messageId, report)
+        }
+      } else {
+        return message.reply(
+          this.embedMessage.warning({
+            title: `:warning: Data Request failed`,
+            description: `This proposal doesn't have associated a data request transaction hash`
+          })
+        )
+      }
+    } else {
+      this.embedMessage.warning({
+        title: `:warning: No schedule error found`,
+        description: `It must exist a schedule error before call reSchedule`
+      })
+    }
+
+    return undefined
+  }
+
+  private async reExecute (message: Message) {
+    const { messageId } = parseRetryMessage(message)
+
+    if (!messageId) {
+      return message.reply(
+        this.embedMessage.warning({
+          title: `:warning: proposal_id not found`,
+          description: `You have to specify the proposal_id of the proposal`
+        })
+      )
+    }
+
+    const proposal = await this.proposalRepository.getProposalByMessageId(
+      messageId
+    )
+
+    const dao = this.daoDirectory[proposal.guildId]
+    if (proposal.executeError) {
+      if (proposal.report) {
+        executeVotingResultAndHandleResponse(this.embedMessage)(
+          {
+            dao,
+            message,
+            proposalDescription: proposal.description,
+            report: proposal.report,
+            messageId
+          },
+          (
+            error: ExecuteError | ScheduleError | null,
+            _result: any,
+            drTxHash?: string
+          ) =>
+            handleScheduleDataRequestResult(this.proposalRepository)(
+              error,
+              messageId,
+              drTxHash
+            )
+        )
+      } else {
+        this.embedMessage.warning({
+          title: `:warning: No execute error found`,
+          description: `It must exist a execute error before call reExecute`
+        })
+      }
+    } else {
+      this.embedMessage.warning({
+        title: `:warning: No execute error found`,
+        description: `It must exist a execute error before call reExecute`
+      })
+    }
+
+    return undefined
+  }
+}
+
+function isValidGasPrice (gasPrice: string) {
+  return gasPrice.match(/^[0-9]+$/)
 }

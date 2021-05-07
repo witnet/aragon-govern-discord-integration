@@ -1,6 +1,6 @@
 import { longSetTimeout } from '../../src/utils/longSetTimeout'
 
-describe.only('longSetTimeout', () => {
+describe('longSetTimeout', () => {
   it('should call the callback after the specified time', async () => {
     let witness = jest.fn()
 

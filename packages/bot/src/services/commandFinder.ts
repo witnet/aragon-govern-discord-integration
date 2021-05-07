@@ -22,4 +22,12 @@ export class CommandFinder {
   public isProposalMessage (message: string) {
     return message.includes('New proposal')
   }
+
+  public isReScheduleMessage (message: string) {
+    return message.includes(Command.ReSchedule)
+  }
+
+  public isReExecuteMessage (message: string) {
+    return message.includes(Command.ReExecute)
+  }
 }

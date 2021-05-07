@@ -1,7 +1,14 @@
 import { Database as SqliteDatabase } from 'sqlite3'
 import { inject, injectable } from 'inversify'
 
-import { TYPES, Proposal, Setup } from './types'
+import {
+  TYPES,
+  Proposal,
+  Setup,
+  DbProposal,
+  ScheduleReport,
+  RunResult
+} from './types'
 import { DEFAULT_DB_PATH } from './config'
 
 @injectable()
@@ -18,7 +25,7 @@ export class Database {
     })
   }
 
-  run (sql: string, params: Array<any> = []) {
+  run (sql: string, params: Array<any> = []): Promise<RunResult> {
     return new Promise((resolve, reject) => {
       this.db.run(sql, params, function (err) {
         if (err) {
@@ -26,7 +33,7 @@ export class Database {
           console.log(err)
           reject(err)
         } else {
-          resolve({ id: this.lastID })
+          resolve({ lastID: this.lastID, changes: this.changes })
         }
       })
     })
@@ -137,9 +144,14 @@ export class ProposalRepository {
         description TEXT,
         createdAt NUMERIC,
         deadline NUMERIC,
+        daoName TEXT,
+        executeError NUMERIC,
+        scheduleError NUMERIC,
         actionTo TEXT,
         actionValue TEXT,
         actionData TEXT,
+        drTxHash TEXT,
+        report BLOB
       )
     `
     return this.db.run(sql)
@@ -147,10 +159,9 @@ export class ProposalRepository {
 
   async insert (proposal: Proposal) {
     const sql = `
-        INSERT INTO proposals (messageId, channelId, guildId, description, createdAt, deadline, daoName)
-        VALUES (?, ?, ?, ?, ?, ?, ?) 
+        INSERT INTO proposals (messageId, channelId, guildId, description, createdAt, deadline, daoName, actionTo, actionValue, actionData, executeError, scheduleError, drTxHash, report)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
-
     return await this.db.run(sql, [
       proposal.messageId,
       proposal.channelId,
@@ -158,9 +169,14 @@ export class ProposalRepository {
       proposal.description,
       proposal.createdAt,
       proposal.deadline,
+      proposal.daoName,
       proposal.action.to,
       proposal.action.value,
       proposal.action.data,
+      proposal.executeError || 0,
+      proposal.scheduleError || 0,
+      proposal.drTxHash || '',
+      proposal.report
     ])
   }
 
@@ -191,6 +207,82 @@ export class ProposalRepository {
 
     return this._normalizeProposal(activeDbProposal)
   }
+
+  async removeExecuteError (messageId: string): Promise<RunResult> {
+    return this._updateError('executeError', 0, messageId)
+  }
+
+  async removeScheduleError (messageId: string): Promise<RunResult> {
+    return this._updateError('scheduleError', 0, messageId)
+  }
+
+  async addExecuteError (messageId: string): Promise<RunResult> {
+    return this._updateError('executeError', 1, messageId)
+  }
+
+  async addScheduleError (messageId: string): Promise<RunResult> {
+    return this._updateError('scheduleError', 1, messageId)
+  }
+
+  async getProposalByMessageId (messageId: string): Promise<Proposal> {
+    const sql = `
+      SELECT *
+      FROM proposals
+      WHERE messageId = ?
+    `
+
+    const activeDbProposal = await this.db.get<DbProposal>(sql, [messageId])
+
+    return this._normalizeProposal(activeDbProposal)
+  }
+
+  async setDrTxHash (messageId: string, drTxHash: string): Promise<RunResult> {
+    const sql = `
+      UPDATE proposals
+      SET drTxHash=?
+      WHERE messageId=?
+    `
+
+    return await this.db.run(sql, [drTxHash, messageId])
+  }
+
+  async setScheduleReport (messageId: string, scheduleReport: ScheduleReport) {
+    const reportAsText = new Blob([JSON.stringify(scheduleReport)], {
+      type: 'text/plain'
+    })
+
+    const sql = `
+      UPDATE proposals
+      set
+        report=?
+      WHERE messageId=?
+    `
+
+    return await this.db.run(sql, [reportAsText, messageId])
+  }
+
+  async _updateError (
+    errorName: 'scheduleError' | 'executeError',
+    hasError: 0 | 1,
+    messageId: string
+  ): Promise<RunResult> {
+    const sql =
+      errorName === 'scheduleError'
+        ? `
+      UPDATE proposals 
+      SET 
+        scheduleError=?
+      WHERE messageId=?
+    `
+        : `
+      UPDATE proposals 
+      SET 
+        executeError=?
+      WHERE messageId=?
+    `
+    return await this.db.run(sql, [hasError, messageId])
+  }
+
   async _normalizeProposal (dbProposal: DbProposal): Promise<Proposal> {
     return {
       channelId: dbProposal.channelId,
@@ -201,11 +293,14 @@ export class ProposalRepository {
       guildId: dbProposal.guildId,
       messageId: dbProposal.messageId,
       drTxHash: dbProposal.drTxHash,
+      executeError: !!dbProposal.executeError,
+      scheduleError: !!dbProposal.scheduleError,
       action: {
         data: dbProposal.actionData,
         to: dbProposal.actionTo,
         value: dbProposal.actionValue
       },
+      report: JSON.parse((await dbProposal?.report?.text()) || 'null')
     }
   }
 }

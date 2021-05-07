@@ -1,4 +1,6 @@
-import { DaoEntry } from './services/subgraph/types'
+import { Message } from 'discord.js'
+import { ExecuteError, ScheduleError } from './error'
+import { Payload, DaoEntry } from './services/subgraph/types'
 
 export const TYPES = {
   Bot: Symbol('Bot'),
@@ -79,7 +81,9 @@ export enum Command {
   NewDao = '!new',
   NewProposal = '!proposal',
   Setup = '!setup',
-  Role = '!role'
+  Role = '!role',
+  ReSchedule = '!reschedule',
+  ReExecute = '!reexecute'
 }
 
 export type ReactionCount = {
@@ -118,6 +122,17 @@ export type Proposal = {
   deadline: number
   daoName: string
   action: ProposalAction
+  executeError?: boolean
+  scheduleError?: boolean
+  drTxHash?: string | null
+  report?: ScheduleReport
+}
+
+export type ScheduleReport = {
+  payload: Payload
+  transactionHash: string
+}
+
 export type DbProposal = {
   messageId: string
   channelId: string
@@ -126,8 +141,32 @@ export type DbProposal = {
   createdAt: number
   deadline: number
   daoName: string
+  executeError: 0 | 1
+  scheduleError: 0 | 1
   actionTo: string
   actionData: string
   actionValue: string
   drTxHash: string | null
+  report: Blob | null
 }
+
+export type ScheduleDataRequestParams = {
+  channelId: string
+  messageId: string
+  message: Message
+  dao: DaoEntry
+  proposalDescription: string
+  proposalAction: ProposalAction
+}
+
+export type RunResult = {
+  changes: number
+  lastID: number
+}
+
+// FIXME: improve type
+export type ReportAndExecuteCallback = (
+  error: ScheduleError | ExecuteError | Error | null,
+  result: Message | null,
+  drTxHash?: string
+) => void

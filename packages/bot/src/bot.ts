@@ -6,11 +6,15 @@ import { DaoEntry } from './services/subgraph/types'
 
 import { MessageHandler } from './services/messageHandler'
 import { ProposalRepository, SetupRepository } from './database'
-import { scheduleDataRequest } from './services/scheduleDataRequest'
+import {
+  handleScheduleDataRequestResult,
+  scheduleDataRequest
+} from './services/scheduleDataRequest'
 import { SubgraphClient } from './services/subgraph'
 import { EmbedMessage } from './services/embedMessage'
 import { ReactionHandler } from './services/reactionHandler'
 import { longSetTimeout } from './utils/longSetTimeout'
+import { ExecuteError, ScheduleError } from './error'
 
 // Bot logic
 @injectable()
@@ -92,12 +96,25 @@ export class Bot {
 
             if (message && dao) {
               scheduleDataRequest(this.embedMessage)(
-                proposal.channelId,
-                proposal.messageId,
-                message,
-                dao,
-                proposal.description,
-                proposal.action
+                {
+                  channelId: proposal.channelId,
+                  messageId: proposal.messageId,
+                  message,
+                  dao,
+                  proposalDescription: proposal.description,
+                  proposalAction: proposal.action
+                },
+
+                (
+                  error: ExecuteError | ScheduleError | Error | null,
+                  _,
+                  drTxHash?: string
+                ) =>
+                  handleScheduleDataRequestResult(this.proposalRepository)(
+                    error,
+                    proposal.messageId,
+                    drTxHash
+                  )
               )
             }
           }, proposal.deadline - Date.now())
@@ -118,7 +135,6 @@ export class Bot {
     if (channel && channel.type === 'text') {
       const textChannel: TextChannel = channel as TextChannel
       const message = await textChannel.messages.fetch(id)
-      console.log(message.embeds[0].fields[0].value)
       //TODO: improve parse votes when the final structure is implemented
       const votes = {
         positive: Number(message.embeds[0].fields[0].value) || 0,

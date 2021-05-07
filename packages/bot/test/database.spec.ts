@@ -1,4 +1,3 @@
-import { Guild } from 'discord.js'
 import 'reflect-metadata'
 
 import { Database, ProposalRepository, SetupRepository } from '../src/database'
@@ -40,7 +39,7 @@ describe('database', () => {
       }, 1000)
     })
 
-    expect(result).toStrictEqual({ id: 0 })
+    expect(result).toStrictEqual({ changes: 0, lastID: 0 })
   })
 
   it('should allow insert rows', async () => {
@@ -86,7 +85,7 @@ describe('database', () => {
       }, 1000)
     })
 
-    expect(result).toStrictEqual({ id: 1 })
+    expect(result).toStrictEqual({ lastID: 1, changes: 1 })
   })
 
   it('all method should return stored elements', async () => {
@@ -179,7 +178,7 @@ describe('setup database', () => {
       }, 1000)
     })
 
-    expect(result).toStrictEqual({ id: 0 })
+    expect(result).toStrictEqual({ lastID: 0, changes: 0 })
   })
 
   it('should allow insert rows', async () => {
@@ -219,7 +218,7 @@ describe('setup database', () => {
       }, 1000)
     })
 
-    expect(result).toStrictEqual({ id: 1 })
+    expect(result).toStrictEqual({ lastID: 1, changes: 1 })
   })
 
   it('all method should return stored elements', async () => {
@@ -416,7 +415,14 @@ describe('ProposalRepository', () => {
         description TEXT,
         createdAt NUMERIC,
         deadline NUMERIC,
-        daoName TEXT
+        daoName TEXT,
+        executeError NUMERIC,
+        scheduleError NUMERIC,
+        actionTo TEXT,
+        actionValue TEXT,
+        actionData TEXT,
+        drTxHash TEXT,
+        report BLOB
       )
     `
 
@@ -436,7 +442,14 @@ describe('ProposalRepository', () => {
     const createdAt = 1613053264901
     const deadline = 1633053264901
     const daoName = 'bitconnect'
-
+    const to = 'to'
+    const value = 'value'
+    const data = 'data'
+    const action = {
+      to,
+      value,
+      data
+    }
     const proposalRepository = new ProposalRepository(database)
 
     proposalRepository.insert({
@@ -446,12 +459,35 @@ describe('ProposalRepository', () => {
       description,
       createdAt,
       deadline,
-      daoName
+      daoName,
+      action
+      // report: {
+      //   payload: {
+      //     allowsFailuresMap: 'allowsFailersMap',
+      //     executionTime: 'executionTime',
+      //     nonce: 'nonce',
+      //     proof: 'proof',
+      //     submitter: 'submitter',
+      //     actions: [
+      //       {
+      //         data: 'data1',
+      //         to: 'to1',
+      //         value: 'value1'
+      //       },
+      //       {
+      //         data: 'data2',
+      //         to: 'to2',
+      //         value: 'value2'
+      //       }
+      //     ]
+      //   },
+      //   transactionHash: 'hash'
+      // }
     })
 
     const sql = `
-        INSERT INTO proposals (messageId, channelId, guildId, description, createdAt, deadline, daoName)
-        VALUES (?, ?, ?, ?, ?, ?, ?) 
+        INSERT INTO proposals (messageId, channelId, guildId, description, createdAt, deadline, daoName, actionTo, actionValue, actionData, executeError, scheduleError, drTxHash, report)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
 
     expect(runMock).toHaveBeenNthCalledWith(1, sql, [
@@ -461,11 +497,18 @@ describe('ProposalRepository', () => {
       description,
       createdAt,
       deadline,
-      daoName
+      daoName,
+      'to',
+      'value',
+      'data',
+      0,
+      0,
+      '',
+      undefined
     ])
   })
 
-  it('getActives should call all', () => {
+  it('getActives should call all', async () => {
     const database = new Database()
     const allMock = jest.fn()
 
@@ -473,7 +516,7 @@ describe('ProposalRepository', () => {
 
     const proposalRepository = new ProposalRepository(database)
 
-    proposalRepository.getActives()
+    await proposalRepository.getActives()
     const sql = `
       SELECT *
       FROM proposals
@@ -498,7 +541,6 @@ describe('ProposalRepository', () => {
 
     const oldCreatedAt = 1513054659827
     const oldDeadline = 1513054659827
-
     const result = await new Promise((resolve, reject) => {
       setTimeout(async () => {
         await proposalRepository.createTable()
@@ -509,8 +551,14 @@ describe('ProposalRepository', () => {
           description,
           createdAt,
           deadline,
-          daoName
+          daoName,
+          action: {
+            data: 'data',
+            to: 'to',
+            value: 'value'
+          }
         })
+
         await proposalRepository.insert({
           messageId,
           channelId,
@@ -518,7 +566,12 @@ describe('ProposalRepository', () => {
           description,
           createdAt: oldCreatedAt,
           deadline: oldDeadline,
-          daoName
+          daoName,
+          action: {
+            data: 'data',
+            to: 'to',
+            value: 'value'
+          }
         })
 
         const activeProposals = await proposalRepository.getActives()
@@ -533,10 +586,248 @@ describe('ProposalRepository', () => {
       description,
       createdAt,
       deadline,
-      daoName
+      daoName,
+      action: {
+        data: 'data',
+        to: 'to',
+        value: 'value'
+      },
+      drTxHash: '',
+      executeError: false,
+      scheduleError: false,
+      report: null
     }
     const expected = [row]
 
     expect(result).toEqual(expected)
+  })
+
+  it.todo('setScheduleReport should add a scheduleReport to the proposal')
+
+  it('setDrTxHash should add a drTxHash to the proposal', async () => {
+    const database = new Database('./bot.db')
+
+    const proposalRepository = new ProposalRepository(database)
+
+    const messageId = '1'
+    const channelId = '2'
+    const guildId = '3'
+    const description = 'description'
+    const createdAt = Date.now()
+    const deadline = Date.now() + 1000000
+    const daoName = 'bitconnect'
+
+    await proposalRepository.createTable()
+
+    await proposalRepository.insert({
+      messageId,
+      channelId,
+      guildId,
+      description,
+      createdAt,
+      deadline,
+      daoName,
+      action: {
+        data: 'data',
+        to: 'to',
+        value: 'value'
+      }
+    })
+
+    await proposalRepository.setDrTxHash(messageId, 'drTxHash')
+
+    const proposal = await proposalRepository.getProposalByMessageId(messageId)
+    console.log('proposal')
+    expect(proposal.drTxHash).toStrictEqual('drTxHash')
+  })
+
+  it('getProposalById should return a proposal', async () => {
+    const database = new Database('./bot.db')
+
+    const proposalRepository = new ProposalRepository(database)
+
+    const messageId = '1'
+    const channelId = '2'
+    const guildId = '3'
+    const description = 'description'
+    const createdAt = Date.now()
+    const deadline = Date.now() + 1000000
+    const daoName = 'bitconnect'
+    await proposalRepository.createTable()
+    await proposalRepository.insert({
+      messageId,
+      channelId,
+      guildId,
+      description,
+      createdAt,
+      deadline,
+      daoName,
+      action: {
+        data: 'data',
+        to: 'to',
+        value: 'value'
+      }
+    })
+
+    const proposal = await proposalRepository.getProposalByMessageId(messageId)
+    const expected = {
+      action: {
+        data: 'data',
+        to: 'to',
+        value: 'value'
+      },
+      channelId: '2',
+      createdAt: 1623053264901,
+      daoName: 'bitconnect',
+      deadline: 1633053264901,
+      description: 'description',
+      drTxHash: '',
+      executeError: false,
+      guildId: '3',
+      messageId: '1',
+      report: null,
+      scheduleError: false
+    }
+    expect(proposal).toStrictEqual(expected)
+  })
+
+  it('addScheduleError', async () => {
+    const database = new Database('./bot.db')
+
+    const proposalRepository = new ProposalRepository(database)
+
+    const messageId = '1'
+    const channelId = '2'
+    const guildId = '3'
+    const description = 'description'
+    const createdAt = Date.now()
+    const deadline = Date.now() + 1000000
+    const daoName = 'bitconnect'
+    await proposalRepository.createTable()
+    await proposalRepository.insert({
+      messageId,
+      channelId,
+      guildId,
+      description,
+      createdAt,
+      deadline,
+      daoName,
+      action: {
+        data: 'data',
+        to: 'to',
+        value: 'value'
+      }
+    })
+
+    await proposalRepository.addScheduleError(messageId)
+
+    const activeProposals = await proposalRepository.getActives()
+
+    expect(activeProposals[0].scheduleError).toBe(true)
+  })
+
+  it('addExecuteError', async () => {
+    const database = new Database('./bot.db')
+
+    const proposalRepository = new ProposalRepository(database)
+
+    const messageId = '1'
+    const channelId = '2'
+    const guildId = '3'
+    const description = 'description'
+    const createdAt = Date.now()
+    const deadline = Date.now() + 1000000
+    const daoName = 'bitconnect'
+    await proposalRepository.createTable()
+    await proposalRepository.insert({
+      messageId,
+      channelId,
+      guildId,
+      description,
+      createdAt,
+      deadline,
+      daoName,
+      action: {
+        data: 'data',
+        to: 'to',
+        value: 'value'
+      }
+    })
+
+    await proposalRepository.addExecuteError(messageId)
+
+    const activeProposals = await proposalRepository.getActives()
+
+    expect(activeProposals[0].executeError).toBe(true)
+  })
+
+  it('removeScheduleError', async () => {
+    const database = new Database('./bot.db')
+
+    const proposalRepository = new ProposalRepository(database)
+
+    const messageId = '1'
+    const channelId = '2'
+    const guildId = '3'
+    const description = 'description'
+    const createdAt = Date.now()
+    const deadline = Date.now() + 1000000
+    const daoName = 'bitconnect'
+    await proposalRepository.createTable()
+    await proposalRepository.insert({
+      messageId,
+      channelId,
+      guildId,
+      description,
+      createdAt,
+      deadline,
+      daoName,
+      action: {
+        data: 'data',
+        to: 'to',
+        value: 'value'
+      }
+    })
+    await proposalRepository.addScheduleError(messageId)
+
+    await proposalRepository.removeScheduleError(messageId)
+
+    const activeProposals = await proposalRepository.getActives()
+    expect(activeProposals[0].scheduleError).toBe(false)
+  })
+
+  it('removeExecuteError', async () => {
+    const database = new Database('./bot.db')
+
+    const proposalRepository = new ProposalRepository(database)
+
+    const messageId = '1'
+    const channelId = '2'
+    const guildId = '3'
+    const description = 'description'
+    const createdAt = Date.now()
+    const deadline = Date.now() + 1000000
+    const daoName = 'bitconnect'
+    await proposalRepository.createTable()
+    await proposalRepository.insert({
+      messageId,
+      channelId,
+      guildId,
+      description,
+      createdAt,
+      deadline,
+      daoName,
+      action: {
+        data: 'data',
+        to: 'to',
+        value: 'value'
+      }
+    })
+    await proposalRepository.addExecuteError(messageId)
+
+    await proposalRepository.removeExecuteError(messageId)
+
+    const activeProposals = await proposalRepository.getActives()
+    expect(activeProposals[0].executeError).toBe(false)
   })
 })
