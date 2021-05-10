@@ -1,6 +1,7 @@
 import { MessageEmbed } from 'discord.js'
 import { injectable } from 'inversify'
 import { EmbedMessageParams } from '../types'
+import { loadReactionMonitors } from './loadReactionMonitors'
 
 @injectable()
 export class EmbedMessage {
@@ -120,24 +121,11 @@ export class EmbedMessage {
       )
       .setThumbnail('attachment://aragon.png')
       .addFields(
-        {
-          name: 'Witnet Foundation Reactions Monitor',
-          value:
-            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806098500978343986&permissions=65536&scope=bot%20messages.read)',
+        loadReactionMonitors().map(monitor => ({
+          name: monitor.name,
+          value: `[Click to add >](${monitor.link})`,
           inline: true
-        },
-        {
-          name: 'Aragon One Reactions Monitor',
-          value:
-            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806819543460610068&permissions=65536&scope=bot%20messages.read)',
-          inline: true
-        },
-        {
-          name: 'OtherPlane Reactions Monitor',
-          value:
-            '[Click to add >](https://discord.com/api/oauth2/authorize?client_id=806821381844762625&permissions=65536&scope=bot%20messages.read)',
-          inline: true
-        }
+        }))
       )
     return {
       embed: daoMessage,
