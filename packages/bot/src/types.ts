@@ -174,5 +174,6 @@ export type ReportAndExecuteCallback = (
 export type ReactionMonitor = {
   link: string
   name: string
+  retrieveUrl: string
 }
 export type ReactionMonitorInfos = Array<ReactionMonitor>

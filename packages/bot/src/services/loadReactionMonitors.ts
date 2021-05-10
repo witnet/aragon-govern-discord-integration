@@ -5,11 +5,14 @@ export function loadReactionMonitors (): ReactionMonitorInfos {
     process.env[`MONITOR_LINK_${index}`] || ''
   const getMonitorName = (index: number) =>
     process.env[`MONITOR_NAME_${index}`] || ''
+  const getMonitorRetrieveUrl = (index: number) =>
+    process.env[`MONITOR_RETRIEVE_URL_${index}`] || ''
 
   let counter = 0
-  let reactionMonitors: Array<{ name: string; link: string }> = []
+  let reactionMonitors: ReactionMonitorInfos = []
   let nextMonitorName: string = getMonitorName(counter)
   let nextMonitorLink: string = getMonitorLink(counter)
+  let nextMonitorRetrieveUrl: string = getMonitorRetrieveUrl(counter)
 
   if (!nextMonitorLink) {
     console.error(
@@ -23,16 +26,24 @@ export function loadReactionMonitors (): ReactionMonitorInfos {
     )
   }
 
-  while (nextMonitorLink && nextMonitorName) {
+  if (!nextMonitorRetrieveUrl) {
+    console.error(
+      'You must provide at least MONITOR_RETRIEVE_URL_0 as environment variable'
+    )
+  }
+
+  while (nextMonitorLink && nextMonitorName && nextMonitorRetrieveUrl) {
     reactionMonitors.push({
       name: nextMonitorName.toString(),
-      link: nextMonitorLink.toString()
+      link: nextMonitorLink.toString(),
+      retrieveUrl: nextMonitorRetrieveUrl.toString()
     })
 
     counter += 1
 
     nextMonitorName = getMonitorName(counter)
     nextMonitorLink = getMonitorLink(counter)
+    nextMonitorRetrieveUrl = getMonitorRetrieveUrl(counter)
   }
 
   return reactionMonitors
