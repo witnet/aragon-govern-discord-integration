@@ -170,3 +170,9 @@ export type ReportAndExecuteCallback = (
   result: Message | null,
   drTxHash?: string
 ) => void
+
+export type ReactionMonitor = {
+  link: string
+  name: string
+}
+export type ReactionMonitorInfos = Array<ReactionMonitor>
