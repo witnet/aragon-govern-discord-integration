@@ -681,7 +681,7 @@ describe('ProposalRepository', () => {
       daoName: 'bitconnect',
       deadline: 1633053264901,
       description: 'description',
-      drTxHash: '',
+      drTxHash: 'drTxHash',
       executeError: false,
       guildId: '3',
       messageId: '1',
