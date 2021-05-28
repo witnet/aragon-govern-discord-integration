@@ -1,5 +1,5 @@
 import { Message } from 'discord.js'
-import { ENVIRONMENT, DEFAULT_EXEC_TIME } from '../config'
+import { DEFAULT_EXEC_TIME } from '../config'
 import { reportVotingResult } from './reportVotingResult'
 import { executeVotingResult } from './executeVotingResult'
 import { createDataRequest } from './createDataRequest'
@@ -7,10 +7,8 @@ import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
 import { Payload, DaoEntry } from './subgraph/types'
 import {
-  EtherscanUrl,
   ProposalAction,
   ReportAndExecuteCallback,
-  Url
 } from '../types'
 import { EmbedMessage } from './embedMessage'
 import { countReactions } from './countReactions'
@@ -20,15 +18,12 @@ import { formatDistance } from 'date-fns'
 
 import {
   defaultPositiveReactions,
-  defaultNegativeReactions
+  defaultNegativeReactions,
+  etherscanUrl
 } from '../constants'
 import { ExecuteError, ScheduleError } from '../error'
 import { ProposalRepository } from 'src/database'
 
-const etherscanUrl: Url = {
-  development: EtherscanUrl.development,
-  production: EtherscanUrl.production
-}
 
 export function scheduleDataRequest (embedMessage: EmbedMessage) {
   return async (
@@ -201,7 +196,7 @@ export function reportAndExecute (embedMessage: EmbedMessage) {
         '@everyone',
         embedMessage.info({
           title: 'The proposal passed with a majority of votes',
-          description: `The proposed action has been scheduled in the ***${dao.name}*** Aragon Govern DAO (check the transaction on [Etherscan](https://${etherscanUrl[ENVIRONMENT]}/tx/${report?.transactionHash})). Unless disputed, the action will be executed in ${disputingTime}. The result of this voting was retrieved securely using the Witnet decentralized oracle, and can be verified on the [Witnet block explorer](https://witnet.network/search/${drTxHash}).`,
+          description: `The proposed action has been scheduled in the ***${dao.name}*** Aragon Govern DAO (check the transaction on [Etherscan](${etherscanUrl}}/tx/${report?.transactionHash})). Unless disputed, the action will be executed in ${disputingTime}. The result of this voting was retrieved securely using the Witnet decentralized oracle, and can be verified on the [Witnet block explorer](https://witnet.network/search/${drTxHash}).`,
           footerMessage: `Proposal ${proposalDescription}`,
           authorUrl: message.author.displayAvatarURL()
         })
@@ -219,7 +214,7 @@ export function reportAndExecute (embedMessage: EmbedMessage) {
       return report
     } else {
       const isTransactionHash = report?.transactionHash
-      const etherscanMsg = `Check the failed transaction on [Etherscan](https://${etherscanUrl[ENVIRONMENT]}/tx/${report?.transactionHash}). `
+      const etherscanMsg = `Check the failed transaction on [Etherscan](${etherscanUrl}}/tx/${report?.transactionHash}). `
       message.channel.send(
         '@everyone',
         embedMessage.error({
@@ -270,7 +265,7 @@ export function executeVotingResultAndHandleResponse (
           '@everyone',
           embedMessage.info({
             title: 'The proposed action has been executed',
-            description: `The proposed action has been executed on Ethereum (check the transaction on [Etherscan](https://${etherscanUrl[ENVIRONMENT]}/tx/${transactionHash})).`,
+            description: `The proposed action has been executed on Ethereum (check the transaction on [Etherscan](${etherscanUrl}/tx/${transactionHash})).`,
             footerMessage: `Proposal ${proposalDescription}`,
             authorUrl: message.author.displayAvatarURL()
           })

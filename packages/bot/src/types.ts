@@ -60,6 +60,7 @@ export type EmbedMessageParams = {
   address?: string
   role?: string
   result?: Result
+  executorAddress?: string
 }
 
 export type Result = {

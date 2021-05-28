@@ -2,6 +2,8 @@ import { MessageEmbed } from 'discord.js'
 import { injectable } from 'inversify'
 import { EmbedMessageParams } from '../types'
 import { loadReactionMonitors } from './loadReactionMonitors'
+import { etherscanUrl } from '../constants'
+
 
 @injectable()
 export class EmbedMessage {
@@ -112,12 +114,12 @@ export class EmbedMessage {
     }
   }
 
-  dao ({ daoName, role }: EmbedMessageParams) {
+  dao ({ daoName, role, executorAddress }: EmbedMessageParams) {
     const daoMessage = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Congrats to you and your fellow Discord users!')
       .setDescription(
-        `This server is now connected to the DAO named ***${daoName}***. Only users with the role ***${role}*** can create proposals but **anyone with access to this channel can vote**. **Remember to also add these other bots to your server**, otherwise the integration will fail:`
+        `This server is now connected to the DAO named ***${daoName}*** (check address on [Etherscan](${etherscanUrl}/address/${executorAddress})). Only users with the role ***${role}*** can create proposals but **anyone with access to this channel can vote**. **Remember to also add these other bots to your server**, otherwise the integration will fail:`
       )
       .setThumbnail('attachment://aragon.png')
       .addFields(

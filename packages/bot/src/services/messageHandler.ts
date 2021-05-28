@@ -453,7 +453,7 @@ export class MessageHandler {
     })
     await message.reply(
       '@everyone',
-      this.embedMessage.dao({ daoName, role: roleAllowed })
+      this.embedMessage.dao({ daoName, role: roleAllowed, executorAddress: dao.executor.address })
     )
 
     const role = message.guild?.roles.cache.find(role => {
