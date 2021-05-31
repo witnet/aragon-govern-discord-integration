@@ -1,5 +1,3 @@
-# :wrench: This is still under development :wrench:
-
 # aragon-govern-discord-integration
 
 Enables voting on Aragon Govern using Discord reactions. Powered by [Witnet](https://www.witnet.io/).
