@@ -4,7 +4,6 @@ import { EmbedMessageParams } from '../types'
 import { loadReactionMonitors } from './loadReactionMonitors'
 import { etherscanUrl } from '../constants'
 
-
 @injectable()
 export class EmbedMessage {
   warning ({

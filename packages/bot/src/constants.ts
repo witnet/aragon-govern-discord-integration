@@ -1,8 +1,5 @@
 import { NegativeReaction, PositiveReaction, Reaction } from './types'
-import {
-  EtherscanUrl,
-  Url
-} from './types'
+import { EtherscanUrl, Url } from './types'
 
 import { ENVIRONMENT } from './config'
 

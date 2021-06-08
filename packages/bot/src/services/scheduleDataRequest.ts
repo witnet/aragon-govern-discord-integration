@@ -6,10 +6,7 @@ import { createDataRequest } from './createDataRequest'
 import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
 import { Payload, DaoEntry } from './subgraph/types'
-import {
-  ProposalAction,
-  ReportAndExecuteCallback,
-} from '../types'
+import { ProposalAction, ReportAndExecuteCallback } from '../types'
 import { EmbedMessage } from './embedMessage'
 import { countReactions } from './countReactions'
 import { decodeTallyResult } from '../utils/decodeTally'
@@ -23,7 +20,6 @@ import {
 } from '../constants'
 import { ExecuteError, ScheduleError } from '../error'
 import { ProposalRepository } from 'src/database'
-
 
 export function scheduleDataRequest (embedMessage: EmbedMessage) {
   return async (
