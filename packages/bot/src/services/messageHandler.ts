@@ -55,8 +55,8 @@ export class MessageHandler {
     this.proposalRepository = proposalRepository
     this.setupRepository = setupRepository
   }
-  private async loadSetup () {
-    const savedSetup = await this.setupRepository.getSetup()
+  private async loadSetup (channelId: string) {
+    const savedSetup = await this.setupRepository.getSetupByChannelId(channelId)
     if (savedSetup) {
       const dao = await this.subgraphClient.queryDaoByName(savedSetup.daoName)
       if (dao) {
@@ -69,7 +69,7 @@ export class MessageHandler {
   async handle (
     message: Message
   ): Promise<Message | Array<Message> | undefined> {
-    await this.loadSetup()
+    await this.loadSetup(message.channel.id)
     if (!message.author.bot) {
       if (this.commandFinder.isSetupMessage(message.content)) {
         return this.setup(message)
@@ -104,7 +104,7 @@ export class MessageHandler {
     return message.reply(log)
   }
 
-  private newProposal (message: Message): Promise<Message> {
+  private async newProposal (message: Message): Promise<Message> {
     this.requestMessage = parseProposalMessage(message)
     // define proposal message structure and parse new proposal message
     const {
@@ -122,7 +122,11 @@ export class MessageHandler {
         `Received a request for creating a proposal with message_id='${messageId}' and deadline=${proposalDeadlineDate}`
     )
 
-    if (!this.initialSetup) {
+    const savedSetup = await this.setupRepository.getSetupByChannelId(
+      message.channel.id
+    )
+
+    if (!savedSetup) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Sorry, you need a setup to create proposals`,
@@ -133,16 +137,16 @@ export class MessageHandler {
       )
     }
 
-    if (message.channel.id !== this.initialSetup.channelId) {
+    if (message.channel.id !== savedSetup.channelId) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: You are trying to create a proposal in the wrong channel`,
-          description: `You can only create proposals in the channel where the Aragon Govern integration has been setup for the last time (#${this.initialSetup.channelName})`
+          description: `You can only create proposals in the channel where the Aragon Govern integration has been setup for the last time (#${savedSetup.channelName})`
         })
       )
     }
 
-    if (!this.initialSetup.role) {
+    if (!savedSetup.role) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: You need to set the role of the users allowed to make proposals`,
@@ -153,12 +157,12 @@ export class MessageHandler {
 
     const isAllowed = message.member?.roles.cache.some(role => {
       return (
-        `<@&${role.id}>` === this.initialSetup?.role ||
-        this.initialSetup?.role === '@everyone'
+        `<@&${role.id}>` === savedSetup?.role ||
+        savedSetup?.role === '@everyone'
       )
     })
 
-    if (this.initialSetup.role && !isAllowed) {
+    if (savedSetup.role && !isAllowed) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Sorry, you are not allowed to create a proposal`,
@@ -177,7 +181,7 @@ export class MessageHandler {
       )
     }
 
-    if (!this.initialSetup.daoName) {
+    if (!savedSetup.daoName) {
       return message.reply(
         this.embedMessage.warning({
           title: `:warning: Sorry, this Discord server isn't connected yet to any DAO.`,

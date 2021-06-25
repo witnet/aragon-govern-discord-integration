@@ -204,7 +204,7 @@ describe('setup database', () => {
         const role = 'admin'
         const daoName = 'bitconnect'
         const guildId = '1234'
-        const channelId = '1234'
+        const channelId = '1'
         const channelName = 'general'
         await db.run(createTableSql)
         const a = await db.run(insertSql, [
@@ -226,24 +226,69 @@ describe('setup database', () => {
     const role = 'admin'
     const daoName = 'bitconnect'
     const guildId = '1234'
-    const channelId = '1234'
+    const channelId1 = '1'
+    const channelId2 = '2'
+    const channelId3 = '3'
     const channelName = 'general'
     const result = await new Promise((resolve, reject) => {
       setTimeout(async () => {
+        const createTableSql = `
+          CREATE TABLE IF NOT EXISTS setup (
+            role TEXT,
+            daoName TEXT,
+            guildId TEXT,
+            channelId TEXT,
+            channelName TEXT
+          )
+        `
+
+        const insertSql = `
+            INSERT INTO setup (role, daoName, guildId, channelId, channelName)
+            VALUES (?, ?, ?, ?, ?) 
+        `
+        await db.run(createTableSql)
+        await db.run(insertSql, [
+          role,
+          daoName,
+          guildId,
+          channelId2,
+          channelName
+        ])
+        await db.run(insertSql, [
+          role,
+          daoName,
+          guildId,
+          channelId3,
+          channelName
+        ])
         const sql = `SELECT * FROM setup`
         const a = await db.all(sql)
         resolve(a)
       }, 1000)
     })
 
-    const row = {
+    const row1 = {
       role,
       daoName,
       guildId,
-      channelId,
+      channelId: channelId1,
       channelName
     }
-    const expected = [row]
+    const row2 = {
+      role,
+      daoName,
+      guildId,
+      channelId: channelId2,
+      channelName
+    }
+    const row3 = {
+      role,
+      daoName,
+      guildId,
+      channelId: channelId3,
+      channelName
+    }
+    const expected = [row1, row2, row3]
 
     expect(result).toEqual(expected)
   })
@@ -253,8 +298,8 @@ describe('setup database', () => {
     const role = '@everybody'
     const daoName = 'bitconnect'
     const guildId = '1234'
-    const channelId = '1234'
-    const channelName = 'general'
+    const channelId = '1'
+    const channelName = 'new channel'
     const result = await new Promise((resolve, reject) => {
       setTimeout(async () => {
         const updateSql = `
@@ -265,6 +310,7 @@ describe('setup database', () => {
             guildId=?,
             channelId=?,
             channelName=?
+          WHERE channelId = ?
         `
         const sql = `SELECT * FROM setup`
         await db.all(updateSql, [
@@ -272,23 +318,66 @@ describe('setup database', () => {
           daoName,
           guildId,
           channelId,
-          channelName
+          channelName,
+          channelId
         ])
         const a = await db.all(sql)
         resolve(a)
       }, 1000)
     })
 
-    const row = {
-      role,
-      daoName,
-      guildId,
-      channelId,
-      channelName
-    }
-    const expected = [row]
-
+    const expected = [
+      {
+        role: '@everybody',
+        daoName: 'bitconnect',
+        guildId: '1234',
+        channelId: '1',
+        channelName: 'new channel'
+      },
+      {
+        role: 'admin',
+        daoName: 'bitconnect',
+        guildId: '1234',
+        channelId: '2',
+        channelName: 'general'
+      },
+      {
+        role: 'admin',
+        daoName: 'bitconnect',
+        guildId: '1234',
+        channelId: '3',
+        channelName: 'general'
+      }
+    ]
     expect(result).toEqual(expected)
+  })
+  it('getSetupByChannelId should return a setup', async () => {
+    const db = new Database('./bot.db')
+    // const role = '@everybody'
+    // const daoName = 'bitconnect'
+    // const guildId = '1234'
+    const channelId = '1'
+    // const channelName = 'new channel'
+    const setup = await new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        const sql = `
+          SELECT *
+          FROM setup
+          WHERE channelId = ?
+        `
+        const a = await db.get(sql, [channelId])
+        resolve(a)
+      }, 1000)
+    })
+
+    const expected = {
+      role: '@everybody',
+      daoName: 'bitconnect',
+      guildId: '1234',
+      channelId: '1',
+      channelName: 'new channel'
+    }
+    expect(setup).toEqual(expected)
   })
 })
 
@@ -336,7 +425,7 @@ describe('SetupRepository', () => {
       channelName
     })
   })
-  it('update values in setup table', async () => {
+  it('update values in setup table by channelId', async () => {
     const database = new Database()
     const runMock = jest.fn()
     database.run = runMock
@@ -364,32 +453,35 @@ describe('SetupRepository', () => {
         guildId=?,
         channelId=?,
         channelName=?
+      WHERE channelId = ?
     `
     expect(runMock).toHaveBeenNthCalledWith(1, sql, [
       role,
       daoName,
       guildId,
       channelId,
-      channelName
+      channelName,
+      channelId
     ])
   })
-  it('update setup values', () => {
-    const database = new Database()
-    const allMock = jest.fn()
+  // it('update setup values by channelId', () => {
+  //   const database = new Database()
+  //   const runMock = jest.fn()
+  //   database.run = runMock
 
-    database.all = allMock
+  //   const setupRepository = new SetupRepository(database)
 
-    const setupRepository = new SetupRepository(database)
+  //   setupRepository.getSetupByChannelId('1234')
 
-    setupRepository.getSetup()
-
-    const sql = `
-      SELECT *
-      FROM setup
-    `
-    expect(allMock.mock.calls[0][0]).toBe(sql)
-    expect(typeof allMock.mock.calls[0][0]).toBe('string')
-  })
+  //   const sql = `
+  //     SELECT *
+  //     FROM setup
+  //     WHERE channelId = ?
+  //   `
+  //   expect(runMock).toHaveBeenNthCalledWith(1, sql, [
+  //     '1234',
+  //   ])
+  // })
 })
 
 describe('ProposalRepository', () => {
