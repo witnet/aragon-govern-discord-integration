@@ -106,24 +106,27 @@ export class SetupRepository {
         guildId=?,
         channelId=?,
         channelName=?
+      WHERE channelId = ?
     `
     return await this.db.run(sql, [
       setup.role,
       setup.daoName,
       setup.guildId,
       setup.channelId,
-      setup.channelName
+      setup.channelName,
+      setup.channelId
     ])
   }
 
-  async getSetup (): Promise<Setup> {
+  async getSetupByChannelId (channelId: string): Promise<Setup> {
     const sql = `
       SELECT *
       FROM setup
+      WHERE channelId = ?
     `
-    // FIXME: handle undefined
-    const result = await this.db.all<Setup>(sql)
-    return result?.[0]
+
+    const result = await this.db.get<Setup>(sql, [channelId])
+    return result
   }
 }
 
