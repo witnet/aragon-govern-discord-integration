@@ -84,6 +84,7 @@ export class SetupRepository {
   }
 
   async insert (setup: Setup) {
+    console.log(`[BOT]: inserting setup`, setup)
     const sql = `
       INSERT INTO setup (role, daoName, guildId, channelId, channelName)
       VALUES (?, ?, ?, ?, ?)
@@ -98,6 +99,7 @@ export class SetupRepository {
   }
 
   async updateOnly (setup: Setup) {
+    console.log(`[BOT]: updating setup`, setup)
     const sql = `
       UPDATE setup
       SET 
@@ -108,6 +110,7 @@ export class SetupRepository {
         channelName=?
       WHERE channelId = ?
     `
+
     return await this.db.run(sql, [
       setup.role,
       setup.daoName,
@@ -119,6 +122,8 @@ export class SetupRepository {
   }
 
   async getSetupByChannelId (channelId: string): Promise<Setup> {
+    console.log(`[BOT]: looking for setup by channelId`, channelId)
+
     const sql = `
       SELECT *
       FROM setup
@@ -126,6 +131,7 @@ export class SetupRepository {
     `
 
     const result = await this.db.get<Setup>(sql, [channelId])
+    console.log(`[BOT]: setup by channelId: ${channelId} found ${result}`)
     return result
   }
 }
@@ -161,6 +167,7 @@ export class ProposalRepository {
   }
 
   async insert (proposal: Proposal) {
+    console.log(`[BOT]: inserting proposal`, proposal)
     const sql = `
         INSERT INTO proposals (messageId, channelId, guildId, description, createdAt, deadline, daoName, actionTo, actionValue, actionData, executeError, scheduleError, drTxHash, report)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -184,6 +191,7 @@ export class ProposalRepository {
   }
 
   async getActives (): Promise<Array<Proposal>> {
+    console.log(`[BOT]: looking for active proposals`)
     const sql = `
       SELECT *
       FROM proposals
@@ -193,10 +201,12 @@ export class ProposalRepository {
     const activeDbProposals: Array<DbProposal> =
       (await this.db.all<DbProposal>(sql, [Date.now()])) || []
 
+    console.log(`[BOT]: active proposals found`, activeDbProposals)
     return await Promise.all(activeDbProposals.map(this._normalizeProposal))
   }
 
-  async getActive (messageId: string): Promise<Proposal> {
+  async getActive (messageId: string): Promise<Proposal | null> {
+    console.log(`[BOT]: looking for active proposal for messageId ${messageId}`)
     const sql = `
       SELECT *
       FROM proposals
@@ -208,26 +218,42 @@ export class ProposalRepository {
       messageId
     ])
 
-    return this._normalizeProposal(activeDbProposal)
+    if (activeDbProposal) {
+      console.log(
+        `[BOT]: active proposal for messageId ${messageId} found: `,
+        activeDbProposal
+      )
+      return this._normalizeProposal(activeDbProposal)
+    } else {
+      console.error(
+        `[BOT]: active proposal for messageId ${messageId} not found`
+      )
+      return null
+    }
   }
 
   async removeExecuteError (messageId: string): Promise<RunResult> {
+    console.log(`[BOT]: removing ExecuteError for messageId ${messageId}`)
     return this._updateError('executeError', 0, messageId)
   }
 
   async removeScheduleError (messageId: string): Promise<RunResult> {
+    console.log(`[BOT]: removing ScheduleError for messageId ${messageId}`)
     return this._updateError('scheduleError', 0, messageId)
   }
 
   async addExecuteError (messageId: string): Promise<RunResult> {
+    console.log(`[BOT]: saving ExecuteError for messageId ${messageId}`)
     return this._updateError('executeError', 1, messageId)
   }
 
   async addScheduleError (messageId: string): Promise<RunResult> {
+    console.log(`[BOT]: saving ScheduleError for messageId ${messageId}`)
     return this._updateError('scheduleError', 1, messageId)
   }
 
-  async getProposalByMessageId (messageId: string): Promise<Proposal> {
+  async getProposalByMessageId (messageId: string): Promise<Proposal | null> {
+    console.log(`[BOT]: looking for proposal by messageId ${messageId}`)
     const sql = `
       SELECT *
       FROM proposals
@@ -235,11 +261,22 @@ export class ProposalRepository {
     `
 
     const activeDbProposal = await this.db.get<DbProposal>(sql, [messageId])
-
-    return this._normalizeProposal(activeDbProposal)
+    if (activeDbProposal) {
+      console.log(
+        `[BOT]: active proposal for message: ${messageId} found`,
+        activeDbProposal
+      )
+      return this._normalizeProposal(activeDbProposal)
+    } else {
+      console.log(`[BOT]: active proposal for message: ${messageId} not found`)
+      return null
+    }
   }
 
   async setDrTxHash (messageId: string, drTxHash: string): Promise<RunResult> {
+    console.log(
+      `[BOT]: saving drTxHash: ${drTxHash} for messageId: ${messageId}`
+    )
     const sql = `
       UPDATE proposals
       SET drTxHash=?
