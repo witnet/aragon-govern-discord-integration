@@ -20,11 +20,24 @@ export function createDataRequest (channelId: string, messageId: string) {
     url: `${reactionMonitor.retrieveUrl}?channel_id=${channelId}&message_id=${messageId}`,
     script: [129, 24, 119]
   }))
-  const requestJson = `{"jsonrpc":"2.0","method":"sendRequest","id":"1","params":{"dro":{"data_request":{"time_lock":0,"retrieve":${JSON.stringify(
-    retrievals
-  )},"aggregate":{"filters":[],"reducer":2},"tally":{"filters":[{"op":8,"args":[]}],"reducer":2}},"witness_reward":1000,"witnesses":100,"commit_and_reveal_fee":10,"min_consensus_percentage":51,"collateral":1000000000},"fee":0}}`
+  const dataRequest = {
+    dro: {
+      data_request: {
+        time_lock: 0,
+        retrieve: JSON.stringify(retrievals),
+        aggregate: { filters: [], reducer: 2 },
+        tally: { filters: [{ op: 8, args: [] }], reducer: 2 }
+      },
+      witness_reward: 1000,
+      witnesses: 100,
+      commit_and_reveal_fee: 10,
+      min_consensus_percentage: 51,
+      collateral: 1000000000
+    },
+    fee: 0
+  }
 
-  return requestJson
+  return dataRequest
 }
 
 export default createDataRequest

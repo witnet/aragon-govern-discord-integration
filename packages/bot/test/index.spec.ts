@@ -29,15 +29,27 @@ describe('bot', () => {
         'https://discord.com/api/oauth2/authorize?client_id=806821381844762625&permissions=65536&scope=bot%20messages.read'
       process.env.MONITOR_RETRIEVE_URL_2 = 'http://docker.witnet.io:3002'
 
-      const expected = JSON.stringify(
-        JSON.parse(
-          '{"jsonrpc":"2.0","method":"sendRequest","id":"1","params":{"dro":{"data_request":{"time_lock":0,"retrieve":[{"kind":"HTTP-GET","url":"http://docker.witnet.io:3000?channel_id=a&message_id=1","script":[129,24,119]},{"kind":"HTTP-GET","url":"http://docker.witnet.io:3001?channel_id=a&message_id=1","script":[129,24,119]},{"kind":"HTTP-GET","url":"http://docker.witnet.io:3002?channel_id=a&message_id=1","script":[129,24,119]}],"aggregate":{"filters":[],"reducer":2},"tally":{"filters":[{"op":8,"args":[]}],"reducer":2}},"witness_reward":1000,"witnesses":3,"commit_and_reveal_fee":10,"min_consensus_percentage":51,"collateral":1000000000},"fee":0}}'
-        )
-      )
+      const expected = {
+        dro: {
+          collateral: 1000000000,
+          commit_and_reveal_fee: 10,
+          data_request: {
+            aggregate: { filters: [], reducer: 2 },
+            retrieve:
+              '[{"kind":"HTTP-GET","url":"http://docker.witnet.io:3000?channel_id=a&message_id=1","script":[129,24,119]},{"kind":"HTTP-GET","url":"http://docker.witnet.io:3001?channel_id=a&message_id=1","script":[129,24,119]},{"kind":"HTTP-GET","url":"http://docker.witnet.io:3002?channel_id=a&message_id=1","script":[129,24,119]}]',
+            tally: { filters: [{ args: [], op: 8 }], reducer: 2 },
+            time_lock: 0
+          },
+          min_consensus_percentage: 51,
+          witness_reward: 1000,
+          witnesses: 100
+        },
+        fee: 0
+      }
 
       const result = createDataRequest('a', '1')
 
-      expect(result).toBe(expected)
+      expect(result).toStrictEqual(expected)
     })
   })
 })

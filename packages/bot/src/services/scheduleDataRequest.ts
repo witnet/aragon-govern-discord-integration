@@ -64,68 +64,58 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
     const request = createDataRequest(channelId, resultMessage.id)
     console.log('Created Witnet data request:', request)
 
-    sendRequestToWitnetNode(
-      request,
-      (drTxHash: string) => {
-        console.log(`Data request sent to Witnet node, drTxHash: ${drTxHash}`)
-        waitForTally(
-          drTxHash,
-          async (tally: any) => {
-            console.log('Tallied proposal result:', tally.tally)
-            const decodedTally = decodeTallyResult(tally.tally)
+    sendRequestToWitnetNode(request, (drTxHash: string) => {
+      console.log(`Data request sent to Witnet node, drTxHash: ${drTxHash}`)
+      waitForTally(drTxHash, async (tally: any) => {
+        console.log('Tallied proposal result:', tally.tally)
+        const decodedTally = decodeTallyResult(tally.tally)
 
-            if (!decodedTally.positive && decodedTally.positive !== 0) {
-              message.channel.send(
-                '@everyone',
-                embedMessage.error({
-                  title: `:exclamation: There was an error executing the Witnet data request`,
-                  description: `You can check the Witnet transaction in the [block explorer](https://witnet.network/search/${drTxHash}).`,
-                  footerMessage: `Proposal ${proposalDescription}`,
-                  authorUrl: message.author.displayAvatarURL()
-                })
-              )
-              return callback(
-                new Error(
-                  'There was an error executing the witnet data request'
-                ),
-                null,
-                drTxHash
-              )
-            }
-            if (decodedTally.positive > decodedTally.negative) {
-              reportAndExecute(embedMessage)(
-                {
-                  dao,
-                  drTxHash,
-                  proposalAction,
-                  message,
-                  proposalDescription,
-                  gasPrice: undefined,
-                  messageId
-                },
-                callback
-              )
-            } else {
-              return callback(
-                null,
-                await message.channel.send(
-                  '@everyone',
-                  embedMessage.info({
-                    title: `The proposal did not receive a majority of positive votes`,
-                    description: `The action will not be executed. The result of this voting was retrieved securely using the Witnet decentralized oracle, and can be verified on the [Witnet block explorer](https://witnet.network/search/${drTxHash}).`,
-                    footerMessage: `Proposal ${proposalDescription}`,
-                    authorUrl: message.author.displayAvatarURL()
-                  })
-                ),
-                drTxHash
-              )
-            }
-          },
-          () => {}
-        )
-      },
-      () => {}
-    )
+        if (!decodedTally.positive && decodedTally.positive !== 0) {
+          message.channel.send(
+            '@everyone',
+            embedMessage.error({
+              title: `:exclamation: There was an error executing the Witnet data request`,
+              description: `You can check the Witnet transaction in the [block explorer](https://witnet.network/search/${drTxHash}).`,
+              footerMessage: `Proposal ${proposalDescription}`,
+              authorUrl: message.author.displayAvatarURL()
+            })
+          )
+          return callback(
+            new Error('There was an error executing the witnet data request'),
+            null,
+            drTxHash
+          )
+        }
+        if (decodedTally.positive > decodedTally.negative) {
+          reportAndExecute(embedMessage)(
+            {
+              dao,
+              drTxHash,
+              proposalAction,
+              message,
+              proposalDescription,
+              gasPrice: undefined,
+              messageId
+            },
+            callback
+          )
+        } else {
+          return callback(
+            null,
+            await message.channel.send(
+              '@everyone',
+              embedMessage.info({
+                title: `The proposal did not receive a majority of positive votes`,
+                description: `The action will not be executed. The result of this voting was retrieved securely using the Witnet decentralized oracle, and can be verified on the [Witnet block explorer](https://witnet.network/search/${drTxHash}).`,
+                footerMessage: `Proposal ${proposalDescription}`,
+                authorUrl: message.author.displayAvatarURL()
+              })
+            ),
+            drTxHash
+          )
+        }
+      })
+    })
   }
 }
 
