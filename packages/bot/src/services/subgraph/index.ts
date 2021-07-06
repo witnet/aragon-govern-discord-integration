@@ -30,11 +30,16 @@ export class SubgraphClient {
 
   async queryDaoByName (name: string): Promise<DaoEntry | null> {
     console.log('Querying dao by name: ', name)
-    const result = await this.fetchResult<{ daos: DaoEntry[] }>(
-      [QUERY_DAO, { name }],
-      `Unexpected result when queryin DAO by name ${name}.`
-    )
+    try {
+      const result = await this.fetchResult<{ daos: DaoEntry[] }>(
+        [QUERY_DAO, { name }],
+        `Unexpected result when queryin DAO by name ${name}.`
+      )
 
-    return result?.daos?.[0] || null
+      return result?.daos?.[0] || null
+    } catch (err) {
+      console.error(err)
+      throw new ErrorUnexpectedResult(err)
+    }
   }
 }
