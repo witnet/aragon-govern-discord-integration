@@ -576,46 +576,45 @@ export class MessageHandler {
     const proposal = await this.proposalRepository.getProposalByMessageId(
       messageId
     )
-
-    const dao = this.daoDirectory[proposal.guildId]
-    if (proposal.executeError) {
-      if (proposal.report) {
-        executeVotingResultAndHandleResponse(this.embedMessage)(
-          {
-            dao,
-            message,
-            proposalDescription: proposal.description,
-            report: proposal.report,
-            messageId
-          },
-          (
-            error: ExecuteError | ScheduleError | null,
-            _result: any,
-            drTxHash?: string
-          ) =>
-            handleScheduleDataRequestResult(this.proposalRepository)(
-              error,
-              messageId,
-              drTxHash
-            )
-        )
+    if (proposal) {
+      const dao = this.daoDirectory[proposal.guildId]
+      if (proposal.executeError) {
+        if (proposal.report) {
+          executeVotingResultAndHandleResponse(this.embedMessage)(
+            {
+              dao,
+              message,
+              proposalDescription: proposal.description,
+              report: proposal.report,
+              messageId
+            },
+            (
+              error: ExecuteError | ScheduleError | null,
+              _result: any,
+              drTxHash?: string
+            ) =>
+              handleScheduleDataRequestResult(this.proposalRepository)(
+                error,
+                messageId,
+                drTxHash
+              )
+          )
+        } else {
+          this.embedMessage.warning({
+            title: `:warning: No execute error found`,
+            description: `It must exist a execute error before call reExecute`
+          })
+        }
       } else {
         this.embedMessage.warning({
           title: `:warning: No execute error found`,
           description: `It must exist a execute error before call reExecute`
         })
       }
-    } else {
-      this.embedMessage.warning({
-        title: `:warning: No execute error found`,
-        description: `It must exist a execute error before call reExecute`
-      })
     }
-
     return undefined
   }
 }
-
 function isValidGasPrice (gasPrice: string) {
   return gasPrice.match(/^[0-9]+$/)
 }
