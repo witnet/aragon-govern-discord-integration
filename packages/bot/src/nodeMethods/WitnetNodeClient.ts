@@ -1,5 +1,7 @@
+import { injectable } from 'inversify'
 import { Socket } from 'net'
 
+@injectable()
 export class WitnetNodeClient {
   public client: Socket
 
@@ -31,7 +33,6 @@ export class WitnetNodeClient {
         content += chunk.toString()
         if (chunk.toString().includes('\n')) {
           resolve(JSON.parse(content)?.result)
-          this.destroy()
         }
       })
     })

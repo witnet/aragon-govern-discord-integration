@@ -13,7 +13,8 @@ export const TYPES = {
   SetupRepository: Symbol('SetupRepository'),
   SubgraphClient: Symbol('SubgraphClient'),
   EmbedMessage: Symbol('EmbedMessage'),
-  ReactionHandler: Symbol('ReactionHandler')
+  ReactionHandler: Symbol('ReactionHandler'),
+  WitnetNodeClient: Symbol('WitnetNodeClient')
 }
 
 // Maps guild IDs to DAOs

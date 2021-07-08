@@ -1,3 +1,5 @@
+import 'reflect-metadata'
+
 import { WitnetNodeClient } from '../../src/nodeMethods/WitnetNodeClient'
 
 const net = require('net')

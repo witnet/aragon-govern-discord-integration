@@ -3,7 +3,6 @@ import { DEFAULT_EXEC_TIME } from '../config'
 import { reportVotingResult } from './reportVotingResult'
 import { executeVotingResult } from './executeVotingResult'
 import { createDataRequest } from './createDataRequest'
-import { sendRequestToWitnetNode } from '../nodeMethods/sendRequestToWitnetNode'
 import { waitForTally } from '../nodeMethods/waitForTally'
 import { Payload, DaoEntry } from './subgraph/types'
 import { ProposalAction, ReportAndExecuteCallback } from '../types'
@@ -20,8 +19,12 @@ import {
 } from '../constants'
 import { ExecuteError, ScheduleError } from '../error'
 import { ProposalRepository } from 'src/database'
+import { WitnetNodeClient } from 'src/nodeMethods/WitnetNodeClient'
 
-export function scheduleDataRequest (embedMessage: EmbedMessage) {
+export function scheduleDataRequest (
+  embedMessage: EmbedMessage,
+  witnetNodeClient: WitnetNodeClient
+) {
   return async (
     {
       channelId,
@@ -64,9 +67,11 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
     const request = createDataRequest(channelId, resultMessage.id)
     console.log('Created Witnet data request:', request)
 
-    sendRequestToWitnetNode(request, (drTxHash: string) => {
+    const drTxHash = await witnetNodeClient.sendRequest(request)
+
+    if (drTxHash) {
       console.log(`Data request sent to Witnet node, drTxHash: ${drTxHash}`)
-      waitForTally(drTxHash, async (tally: any) => {
+      waitForTally(witnetNodeClient)(drTxHash, async (tally: any) => {
         console.log('Tallied proposal result:', tally.tally)
         const decodedTally = decodeTallyResult(tally.tally)
 
@@ -115,7 +120,9 @@ export function scheduleDataRequest (embedMessage: EmbedMessage) {
           )
         }
       })
-    })
+    } else {
+      console.error('There was an error sending de request')
+    }
   }
 }
 

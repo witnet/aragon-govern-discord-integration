@@ -15,6 +15,8 @@ import { EmbedMessage } from './services/embedMessage'
 import { ReactionHandler } from './services/reactionHandler'
 import { longSetTimeout } from './utils/longSetTimeout'
 import { ExecuteError, ScheduleError } from './error'
+import { WitnetNodeClient } from './nodeMethods/WitnetNodeClient'
+import { WITNET_NODE_HOST, WITNET_NODE_PORT } from './config'
 
 // Bot logic
 @injectable()
@@ -28,6 +30,7 @@ export class Bot {
   private embedMessage: EmbedMessage
   private reactionHandler: ReactionHandler
   private loggedIn: string | undefined
+  private witnetNodeClient: WitnetNodeClient
 
   constructor (
     @inject(TYPES.Client) client: Client,
@@ -37,7 +40,8 @@ export class Bot {
     @inject(TYPES.SetupRepository) setupRepository: SetupRepository,
     @inject(TYPES.SubgraphClient) subgraphClient: SubgraphClient,
     @inject(TYPES.ReactionHandler) reactionHandler: ReactionHandler,
-    @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage
+    @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage,
+    @inject(TYPES.WitnetNodeClient) witnetNodeClient: WitnetNodeClient
   ) {
     this.client = client
     this.token = token
@@ -47,6 +51,9 @@ export class Bot {
     this.subgraphClient = subgraphClient
     this.embedMessage = embedMessage
     this.reactionHandler = reactionHandler
+    this.witnetNodeClient = witnetNodeClient
+
+    this.witnetNodeClient.connect(WITNET_NODE_PORT, WITNET_NODE_HOST, () => {})
   }
 
   private async login (): Promise<string> {
@@ -95,7 +102,7 @@ export class Bot {
             )
 
             if (message && dao) {
-              scheduleDataRequest(this.embedMessage)(
+              scheduleDataRequest(this.embedMessage, this.witnetNodeClient)(
                 {
                   channelId: proposal.channelId,
                   messageId: proposal.messageId,

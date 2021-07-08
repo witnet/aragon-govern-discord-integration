@@ -9,6 +9,7 @@ import { EmbedMessage } from './services/embedMessage'
 import { SubgraphClient } from './services/subgraph'
 import { ProposalRepository, Database, SetupRepository } from './database'
 import { ReactionHandler } from './services/reactionHandler'
+import { WitnetNodeClient } from './nodeMethods/WitnetNodeClient'
 
 let container = new Container()
 
@@ -16,6 +17,7 @@ container
   .bind<Bot>(TYPES.Bot)
   .to(Bot)
   .inSingletonScope()
+
 container
   .bind<Client>(TYPES.Client)
   .toConstantValue(new Client({ partials: ['MESSAGE', 'CHANNEL', 'REACTION'] }))
@@ -59,6 +61,11 @@ container
 container
   .bind<Database>(TYPES.Database)
   .to(Database)
+  .inSingletonScope()
+
+container
+  .bind<WitnetNodeClient>(TYPES.WitnetNodeClient)
+  .to(WitnetNodeClient)
   .inSingletonScope()
 
 export default container

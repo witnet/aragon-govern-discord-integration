@@ -25,6 +25,7 @@ import { defaultMinimumProposalDeadline } from '../constants'
 import { convertEthUnits } from '../utils/convertEthUnits'
 import { ExecuteError, ScheduleError } from '../error'
 import { parseRetryMessage } from './parseRetryMessage'
+import { WitnetNodeClient } from '../nodeMethods/WitnetNodeClient'
 
 @injectable()
 export class MessageHandler {
@@ -37,13 +38,15 @@ export class MessageHandler {
   private embedMessage: EmbedMessage
   private proposalRepository: ProposalRepository
   private setupRepository: SetupRepository
+  private witnetNodeClient: WitnetNodeClient
 
   constructor (
     @inject(TYPES.CommandFinder) commandFinder: CommandFinder,
     @inject(TYPES.EmbedMessage) embedMessage: EmbedMessage,
     @inject(TYPES.ProposalRepository) proposalRepository: ProposalRepository,
     @inject(TYPES.SetupRepository) setupRepository: SetupRepository,
-    @inject(TYPES.SubgraphClient) subgraphClient: SubgraphClient
+    @inject(TYPES.SubgraphClient) subgraphClient: SubgraphClient,
+    @inject(TYPES.WitnetNodeClient) witnetNodeClient: WitnetNodeClient
   ) {
     this.commandFinder = commandFinder
     this.embedMessage = embedMessage
@@ -54,6 +57,7 @@ export class MessageHandler {
     this.subgraphClient = subgraphClient
     this.proposalRepository = proposalRepository
     this.setupRepository = setupRepository
+    this.witnetNodeClient = witnetNodeClient
   }
   private async loadSetup (channelId: string) {
     const savedSetup = await this.setupRepository.getSetupByChannelId(channelId)
@@ -303,7 +307,7 @@ export class MessageHandler {
       })
 
       longSetTimeout(() => {
-        scheduleDataRequest(this.embedMessage)(
+        scheduleDataRequest(this.embedMessage, this.witnetNodeClient)(
           {
             channelId,
             messageId,

@@ -131,7 +131,7 @@ export class SetupRepository {
     `
 
     const result = await this.db.get<Setup>(sql, [channelId])
-    console.log(`[BOT]: setup by channelId: ${channelId} found ${result}`)
+    console.log(`[BOT]: setup by channelId: ${channelId} found`, result)
     return result
   }
 }
