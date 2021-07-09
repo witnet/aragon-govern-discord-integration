@@ -7,6 +7,8 @@ export class WitnetNodeClient {
 
   constructor () {
     this.client = new Socket()
+    //TODO: avoid unlimited listeners
+    this.client.setMaxListeners(0)
   }
 
   destroy () {
@@ -31,12 +33,14 @@ export class WitnetNodeClient {
       let content = ''
       this.client.on('data', chunk => {
         content += chunk.toString()
+
         if (chunk.toString().includes('\n')) {
           resolve(JSON.parse(content)?.result)
           content = ''
         }
       })
     })
+
     this.client.on('close', () => {
       if (callbackDone) {
         callbackDone(result)
