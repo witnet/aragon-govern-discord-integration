@@ -24,7 +24,7 @@ export function createDataRequest (channelId: string, messageId: string) {
     dro: {
       data_request: {
         time_lock: 0,
-        retrieve: JSON.stringify(retrievals),
+        retrieve: retrievals,
         aggregate: { filters: [], reducer: 2 },
         tally: { filters: [{ op: 8, args: [] }], reducer: 2 }
       },

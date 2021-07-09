@@ -22,7 +22,7 @@ export class WitnetNodeClient {
       jsonrpc: '2.0',
       id: '1',
       method: methodName,
-      params: JSON.stringify(params)
+      params: params
     }
     this.client.write(`${JSON.stringify(request)}`)
     this.client.write('\n')
@@ -33,10 +33,10 @@ export class WitnetNodeClient {
         content += chunk.toString()
         if (chunk.toString().includes('\n')) {
           resolve(JSON.parse(content)?.result)
+          content = ''
         }
       })
     })
-
     this.client.on('close', () => {
       if (callbackDone) {
         callbackDone(result)
