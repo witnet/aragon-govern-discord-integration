@@ -71,7 +71,7 @@ export function scheduleDataRequest (
 
     if (drTxHash) {
       console.log(`Data request sent to Witnet node, drTxHash: ${drTxHash}`)
-      waitForTally(drTxHash, async (tally: any) => {
+      waitForTally(witnetNodeClient)(drTxHash, async (tally: any) => {
         console.log('Tallied proposal result:', tally.tally)
         const decodedTally = decodeTallyResult(tally.tally)
 

@@ -78,7 +78,7 @@ export class Web3Client {
         }
       })
       .catch(function (error: any) {
-        console.error('ERROR:::>', error)
+        console.error(error)
 
         return error?.receipt
       })

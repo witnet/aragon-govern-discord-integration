@@ -26,25 +26,28 @@ export class WitnetNodeClient {
       method: methodName,
       params: params
     }
+
     this.client.write(`${JSON.stringify(request)}`)
     this.client.write('\n')
 
     const result = await new Promise(resolve => {
       let content = ''
-      this.client.on('data', chunk => {
+      const onDataHandler = (chunk: Buffer) => {
         content += chunk.toString()
-
         if (chunk.toString().includes('\n')) {
           resolve(JSON.parse(content)?.result)
           content = ''
+          this.client.removeListener('data', onDataHandler)
+        }
+      }
+      this.client.on('data', onDataHandler)
+
+      this.client.on('close', () => {
+        if (callbackDone) {
+          callbackDone(result)
+          this.client.removeListener('data', onDataHandler)
         }
       })
-    })
-
-    this.client.on('close', () => {
-      if (callbackDone) {
-        callbackDone(result)
-      }
     })
     return result
   }

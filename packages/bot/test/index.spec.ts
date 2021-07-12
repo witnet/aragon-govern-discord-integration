@@ -35,8 +35,23 @@ describe('bot', () => {
           commit_and_reveal_fee: 10,
           data_request: {
             aggregate: { filters: [], reducer: 2 },
-            retrieve:
-              '[{"kind":"HTTP-GET","url":"http://docker.witnet.io:3000?channel_id=a&message_id=1","script":[129,24,119]},{"kind":"HTTP-GET","url":"http://docker.witnet.io:3001?channel_id=a&message_id=1","script":[129,24,119]},{"kind":"HTTP-GET","url":"http://docker.witnet.io:3002?channel_id=a&message_id=1","script":[129,24,119]}]',
+            retrieve: [
+              {
+                kind: 'HTTP-GET',
+                url: 'http://docker.witnet.io:3000?channel_id=a&message_id=1',
+                script: [129, 24, 119]
+              },
+              {
+                kind: 'HTTP-GET',
+                url: 'http://docker.witnet.io:3001?channel_id=a&message_id=1',
+                script: [129, 24, 119]
+              },
+              {
+                kind: 'HTTP-GET',
+                url: 'http://docker.witnet.io:3002?channel_id=a&message_id=1',
+                script: [129, 24, 119]
+              }
+            ],
             tally: { filters: [{ args: [], op: 8 }], reducer: 2 },
             time_lock: 0
           },
