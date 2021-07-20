@@ -189,7 +189,7 @@ export function reportAndExecute (embedMessage: EmbedMessage) {
         '@everyone',
         embedMessage.info({
           title: 'The proposal passed with a majority of votes',
-          description: `The proposed action has been scheduled in the ***${dao.name}*** Aragon Govern DAO (check the transaction on [Etherscan](${etherscanUrl}}/tx/${report?.transactionHash})). Unless disputed, the action will be executed in ${disputingTime}. The result of this voting was retrieved securely using the Witnet decentralized oracle, and can be verified on the [Witnet block explorer](https://witnet.network/search/${drTxHash}).`,
+          description: `The proposed action has been scheduled in the ***${dao.name}*** Aragon Govern DAO (check the transaction on [Etherscan](${etherscanUrl}/tx/${report?.transactionHash})). Unless disputed, the action will be executed in ${disputingTime}. The result of this voting was retrieved securely using the Witnet decentralized oracle, and can be verified on the [Witnet block explorer](https://witnet.network/search/${drTxHash}).`,
           footerMessage: `Proposal ${proposalDescription}`,
           authorUrl: message.author.displayAvatarURL()
         })
