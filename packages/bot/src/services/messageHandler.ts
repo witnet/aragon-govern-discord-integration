@@ -50,7 +50,6 @@ export class MessageHandler {
   ) {
     this.commandFinder = commandFinder
     this.embedMessage = embedMessage
-    this.initialSetup = null
     this.daoDirectory = {}
     this.requestMessage = null
     this.isUserAllowed = false
@@ -66,7 +65,6 @@ export class MessageHandler {
       if (dao) {
         this.daoDirectory[savedSetup.guildId] = dao
       }
-      this.initialSetup = savedSetup
     }
   }
 
@@ -347,7 +345,8 @@ export class MessageHandler {
   }
 
   private async saveSetup (setup: Setup) {
-    if (this.initialSetup) {
+    const savedSetup = await this.setupRepository.getSetupByChannelId(setup.channelId)
+    if (savedSetup) {
       try {
         this.setupRepository.updateOnly(setup)
         console.log('[MessageHandler]: Setup updated', setup)

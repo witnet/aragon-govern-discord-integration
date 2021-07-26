@@ -207,7 +207,7 @@ export function reportAndExecute (embedMessage: EmbedMessage) {
       return report
     } else {
       const isTransactionHash = report?.transactionHash
-      const etherscanMsg = `Check the failed transaction on [Etherscan](${etherscanUrl}}/tx/${report?.transactionHash}). `
+      const etherscanMsg = `Check the failed transaction on [Etherscan](${etherscanUrl}/tx/${report?.transactionHash}). `
       message.channel.send(
         '@everyone',
         embedMessage.error({
