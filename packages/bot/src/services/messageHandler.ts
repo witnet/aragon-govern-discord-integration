@@ -32,7 +32,6 @@ export class MessageHandler {
   private commandFinder: CommandFinder
   private subgraphClient: SubgraphClient
   private daoDirectory: DaoDirectory
-  public initialSetup: Setup | null
   public requestMessage: RequestMessage | null
   public isUserAllowed: boolean
   private embedMessage: EmbedMessage
