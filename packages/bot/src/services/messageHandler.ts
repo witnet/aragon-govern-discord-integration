@@ -133,7 +133,7 @@ export class MessageHandler {
           title: `:warning: Sorry, you need a setup to create proposals`,
           description:
             `Please create a setup as following: \`!setup\` command like this:` +
-            `\n\`!setup theNameOfYourDao userRole\``
+            `\n\`!setup <daoName> <rule>\``
         })
       )
     }
