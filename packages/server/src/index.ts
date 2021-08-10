@@ -25,3 +25,4 @@ app.get('/', async (req: Request, res: Response) => {
 })
 
 app.listen(port)
+console.log("[Server] Listening on PORT", port)
