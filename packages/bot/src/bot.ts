@@ -52,8 +52,6 @@ export class Bot {
     this.embedMessage = embedMessage
     this.reactionHandler = reactionHandler
     this.witnetNodeClient = witnetNodeClient
-
-    this.witnetNodeClient.connect(WITNET_NODE_PORT, WITNET_NODE_HOST, () => {})
   }
 
   private async login (): Promise<string> {
@@ -67,21 +65,22 @@ export class Bot {
   }
 
   public async listen (): Promise<string> {
-    console.log('[BOT]: Listening discord server')
+    this.witnetNodeClient.connect(WITNET_NODE_PORT, WITNET_NODE_HOST, () => {})
+    console.log('[BOT]: Connected to Witnet node')
 
     await this.proposalRepository.createTable()
     await this.setupRepository.createTable()
     this.client.on('message', (message: Message) => {
       this.messageHandler.handle(message)
     })
-
     this.client.on('messageReactionAdd', async (reaction, user) => {
       this.reactionHandler.handle(reaction, user, ReactionEvent.Add)
     })
-
     this.client.on('messageReactionRemove', async (reaction, user) => {
       this.reactionHandler.handle(reaction, user, ReactionEvent.Remove)
     })
+
+    console.log('[BOT]: Listening discord server')
 
     return this.login()
   }
